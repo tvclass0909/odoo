@@ -1,88 +1,1227 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Revision Notes</title>
-</head>
-<body style="margin:0; padding:10px; background:#fff;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>NovaChat • Admin Suite</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+        }
 
-<div id="chat-app" style="font-family: sans-serif; border: 1px solid #ccc; background: #fff; padding: 10px; max-width: 400px; border-radius: 8px;">
-    <div style="font-size: 10px; color: #888; margin-bottom: 5px;">
-        Status: <span id="status" style="color: orange;">Connecting...</span>
+        body {
+            height: 100vh;
+            display: flex;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            overflow: hidden;
+        }
+
+        /* LOGIN OVERLAY */
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 32, 39, 0.98);
+            backdrop-filter: blur(6px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+            gap: 12px;
+        }
+
+        .login-card {
+            background: #1e2a33;
+            padding: 32px 28px;
+            border-radius: 32px;
+            width: 320px;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+
+        #login-screen input {
+            padding: 12px 16px;
+            border-radius: 40px;
+            border: none;
+            margin-top: 16px;
+            width: 100%;
+            background: #2f3f4a;
+            color: white;
+            font-size: 1rem;
+        }
+
+        #login-screen button {
+            padding: 12px 20px;
+            border-radius: 40px;
+            border: none;
+            background: #9c6bff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 16px;
+            transition: 0.2s;
+        }
+
+        #login-screen button:hover {
+            background: #b47cff;
+            transform: scale(0.98);
+        }
+
+        #error-msg {
+            color: #ff8a7a;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        /* Layout */
+        #chat-app {
+            display: flex;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: #1e2a33;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            border-right: 1px solid #2c4a55;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #d9b4ff, #9c6bff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        #status {
+            font-size: 13px;
+            background: #0f1a1f;
+            padding: 6px 12px;
+            border-radius: 40px;
+            text-align: center;
+            width: fit-content;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 18px 24px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .admin-actions-top {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .top-icon-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            width: 38px;
+            height: 38px;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .top-icon-btn:hover {
+            background: #9c6bff;
+            transform: scale(1.02);
+        }
+
+        .star-active {
+            background: #ffb347;
+            color: #1e2a33;
+            box-shadow: 0 0 8px gold;
+        }
+
+        #messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Message Bubble - username above bubble */
+        .message {
+            margin-bottom: 18px;
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+            width: auto;
+        }
+
+        .left {
+            align-items: flex-start;
+            align-self: flex-start;
+        }
+
+        .right {
+            align-items: flex-end;
+            align-self: flex-end;
+        }
+
+        .message-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .profile-pic {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #9c6bff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            object-fit: cover;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .profile-pic:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+        
+        .right .message-content {
+            flex-direction: row-reverse;
+        }
+
+        .message-text-container {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .username-label {
+            font-weight: 700;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .crown-icon {
+            color: #ffd700;
+            font-size: 1rem;
+            filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+        }
+
+        .left .username-label {
+            color: #bbd4ff;
+            justify-content: flex-start;
+        }
+
+        .right .username-label {
+            color: #d9b4ff;
+            justify-content: flex-end;
+        }
+
+        .bubble {
+            padding: 10px 18px;
+            border-radius: 24px;
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+            line-height: 1.4;
+            display: inline-block;
+            max-width: 100%;
+            width: auto;
+            min-width: 40px;
+            overflow-wrap: break-word;
+            hyphens: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .left .bubble {
+            background: #2f3f4a;
+            border-bottom-left-radius: 4px;
+        }
+
+        .right .bubble {
+            background: #9c6bff;
+            border-bottom-right-radius: 4px;
+        }
+        
+        /* Selection mode highlight */
+        .message.selected .bubble {
+            background: #4a9eff !important;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #4a9eff;
+            transform: scale(1.02);
+        }
+        
+        .selection-mode-active .bubble {
+            cursor: pointer;
+        }
+        
+        .selection-mode-active .bubble:hover {
+            filter: brightness(1.1);
+        }
+
+        /* Admin Drawer */
+        .admin-drawer {
+            width: 0;
+            overflow-x: hidden;
+            background: #111f26;
+            border-left: 1px solid #2c5364;
+            transition: width 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            padding: 0;
+            white-space: nowrap;
+        }
+
+        .admin-drawer.open {
+            width: 320px;
+            padding: 20px 16px;
+            white-space: normal;
+        }
+
+        .admin-section {
+            background: #1a2c36;
+            border-radius: 24px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .admin-section h4 {
+            font-size: 1rem;
+            border-left: 3px solid #9c6bff;
+            padding-left: 10px;
+        }
+
+        .admin-btn {
+            background: #2c4a55;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 32px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.1s;
+        }
+
+        .admin-btn.danger {
+            background: #a03e2c;
+        }
+
+        .admin-btn.warning {
+            background: #c97e00;
+        }
+
+        .admin-input {
+            background: #2f3f4a;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 32px;
+            color: white;
+            width: 100%;
+        }
+
+        .word-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .word-badge {
+            background: #3a5a66;
+            border-radius: 40px;
+            padding: 4px 10px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .remove-word {
+            background: none;
+            border: none;
+            color: #ffaa88;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .input-area {
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            gap: 12px;
+        }
+
+        #message-input {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 40px;
+            border: none;
+            background: #2a3a45;
+            color: white;
+            font-size: 1rem;
+        }
+
+        #send-btn {
+            padding: 0 24px;
+            border-radius: 40px;
+            border: none;
+            background: #9c6bff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .delete-msg-btn {
+            background: none;
+            border: none;
+            color: #ffaa88;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+            padding: 2px 6px;
+            border-radius: 20px;
+            transition: 0.2s;
+        }
+        
+        .delete-msg-btn:hover {
+            background: rgba(255,100,100,0.3);
+        }
+        
+        .selection-bar {
+            position: sticky;
+            bottom: 80px;
+            background: #1e2a33;
+            padding: 10px 20px;
+            border-radius: 40px;
+            margin: 0 20px 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            z-index: 10;
+        }
+        
+        .selection-bar button {
+            background: #d32f2f;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 40px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .selection-bar span {
+            font-size: 14px;
+        }
+        
+        .selection-hint {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-left: 10px;
+        }
+        
+        /* Account Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .account-modal {
+            background: #1e2a33;
+            border-radius: 32px;
+            padding: 32px;
+            width: 420px;
+            max-width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        
+        .account-modal h3 {
+            margin-bottom: 20px;
+        }
+        
+        .profile-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            cursor: pointer;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+        }
+        
+        .upload-btn {
+            background: #2c4a55;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            font-size: 14px;
+            width: auto;
+            display: inline-block;
+        }
+        
+        .account-modal input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 40px;
+            border: none;
+            background: #2f3f4a;
+            color: white;
+            margin-bottom: 15px;
+        }
+        
+        .color-picker-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .color-option.selected {
+            border-color: white;
+            transform: scale(1.1);
+        }
+        
+        .account-modal button {
+            padding: 10px 20px;
+            border-radius: 40px;
+            border: none;
+            background: #9c6bff;
+            color: white;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        /* Profile popup */
+        .profile-popup {
+            position: fixed;
+            background: #1e2a33;
+            border-radius: 20px;
+            padding: 15px 20px;
+            text-align: center;
+            z-index: 2001;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+        
+        .message-removing {
+            animation: fadeOut 0.2s ease forwards;
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.95); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <div class="login-card">
+        <h2>✧ NovaChat ✧</h2>
+        <input type="text" id="login-name" placeholder="Choose your name" autocomplete="off">
+        <button id="login-btn">Join Chat</button>
+        <div id="error-msg"></div>
     </div>
-    <div id="messages" style="height: 250px; overflow-y: scroll; border-bottom: 1px solid #eee; margin-bottom: 10px; font-size: 13px; background: #fafafa; padding: 5px;"></div>
-    
-    <input type="text" id="username" placeholder="Name" style="width: 30%; margin-bottom: 5px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
-    
-    <div style="display: flex; gap: 5px;">
-        <input type="text" id="message-input" placeholder="Type a message..." style="flex-grow: 1; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
-        <button id="send-btn" style="padding: 5px 15px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px;">Send</button>
+</div>
+
+<div id="chat-app">
+    <div class="sidebar">
+        <div class="logo">✦ NovaChat • Live</div>
+        <div id="status">Connecting...</div>
+        <div style="font-size:12px; opacity:0.6;">public realm</div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <button id="account-settings-btn" class="top-icon-btn">👤</button>
+            <span>💬 Global Nexus</span>
+            <div class="admin-actions-top">
+                <button id="star-admin-toggle" class="top-icon-btn" style="display: none;">⭐</button>
+                <button id="admin-panel-toggle" class="top-icon-btn">»</button>
+            </div>
+        </div>
+        <div id="messages"></div>
+        <div class="input-area">
+            <input type="text" id="message-input" placeholder="Type a message...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <div id="admin-drawer" class="admin-drawer">
+        <div class="admin-section">
+            <h4>🛡️ Moderation</h4>
+            <button id="clear-all-msgs" class="admin-btn danger">🗑️ Clear Entire Chat</button>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="target-username" placeholder="Username to delete msgs" class="admin-input">
+                <button id="delete-user-msgs" class="admin-btn">❌ Delete User's Msgs</button>
+            </div>
+            <button id="pause-chat-btn" class="admin-btn warning">⏸️ Pause Chat</button>
+            <span id="pause-status-text" style="font-size:12px;"></span>
+        </div>
+        <div class="admin-section">
+            <h4>🚫 Blocked Names</h4>
+            <div style="display:flex; gap:6px;">
+                <input type="text" id="block-name-input" placeholder="Name to block" class="admin-input">
+                <button id="add-blocked-name" class="admin-btn">+ Block</button>
+            </div>
+            <div id="blocked-names-list" class="word-list"></div>
+        </div>
+        <div class="admin-section">
+            <h4>🔇 Blocked Words</h4>
+            <div style="display:flex; gap:6px;">
+                <input type="text" id="block-word-input" placeholder="Word to block" class="admin-input">
+                <button id="add-blocked-word" class="admin-btn">+ Block</button>
+            </div>
+            <div id="blocked-words-list" class="word-list"></div>
+        </div>
+        <div class="admin-section">
+            <h4>✏️ Rename User</h4>
+            <div style="display:flex; gap:6px;">
+                <input type="text" id="old-username" placeholder="Current name" class="admin-input">
+                <input type="text" id="new-username" placeholder="New name" class="admin-input">
+                <button id="rename-user-btn" class="admin-btn">Rename</button>
+            </div>
+        </div>
+        <div class="admin-section">
+            <h4>📋 Select Messages</h4>
+            <button id="enable-select-mode" class="admin-btn">✓ Enable Selection Mode</button>
+            <button id="disable-select-mode" class="admin-btn">✗ Disable Selection</button>
+            <p style="font-size:11px; opacity:0.7;">Click bubbles to select, press DELETE key</p>
+        </div>
     </div>
 </div>
 
 <script type="module">
-  // 1. FIXED FULL LINKS
-import { initializeApp } 
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded, onChildRemoved, onValue, get, set, remove, update } 
+        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-import { getDatabase, ref, push, onChildAdded, onValue } 
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    const firebaseConfig = {
+        apiKey: "YOUR_KEY",
+        authDomain: "school-chat-06.firebaseapp.com",
+        databaseURL: "https://school-chat-06-default-rtdb.firebaseio.com",
+        projectId: "school-chat-06",
+        storageBucket: "school-chat-06.firebasestorage.app",
+        messagingSenderId: "423053945988",
+        appId: "1:423053945988:web:283ab19ea6bde24b5466d1"
+    };
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDT7pUM1RUZdA9eskyQbtZ0eEfu4-aYoYY",
-    authDomain: "school-chat-06.firebaseapp.com", // 2. FIXED THIS LINE
-    databaseURL: "https://school-chat-06-default-rtdb.firebaseio.com",
-    projectId: "school-chat-06",
-    storageBucket: "school-chat-06.firebasestorage.app",
-    messagingSenderId: "423053945988",
-    appId: "1:423053945988:web:283ab19ea6bde24b5466d1",
-    measurementId: "G-WFMB2M3EDM"
-  };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const messagesRef = ref(db, 'messages');
+    const usersRef = ref(db, 'userProfiles');
 
-  // Start Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const messagesRef = ref(db, 'messages');
+    let currentUser = "";
+    let currentUserProfile = { name: "", avatarColor: "#9c6bff", avatarInitial: "", avatarUrl: null };
+    let isAdminMode = false;
+    let isChatPaused = false;
+    let blockedNames = new Set();
+    let blockedWords = new Set();
+    let selectModeEnabled = false;
+    let selectedMessageKeys = new Set();
+    const messageElements = new Map();
+    let userProfiles = new Map();
 
-  const display = document.getElementById('messages');
-  const input = document.getElementById('message-input');
-  const user = document.getElementById('username');
-  const status = document.getElementById('status');
+    // DOM elements
+    const loginScreen = document.getElementById('login-screen');
+    const messagesDiv = document.getElementById('messages');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const statusSpan = document.getElementById('status');
+    const starToggleBtn = document.getElementById('star-admin-toggle');
+    const adminPanelToggle = document.getElementById('admin-panel-toggle');
+    const adminDrawer = document.getElementById('admin-drawer');
+    const accountSettingsBtn = document.getElementById('account-settings-btn');
+    const connectedRef = ref(db, ".info/connected");
 
-  // Connection Check
-  const connectedRef = ref(db, ".info/connected");
-  onValue(connectedRef, (snap) => {
-    if (snap.val() === true) {
-      status.innerText = "Online";
-      status.style.color = "green";
-    } else {
-      status.innerText = "Connecting...";
-      status.style.color = "orange";
+    async function loadProfiles() {
+        const snap = await get(usersRef);
+        if (snap.exists()) {
+            snap.forEach(child => {
+                userProfiles.set(child.key, child.val());
+            });
+        }
     }
-  });
 
-  // Send Message
-  document.getElementById('send-btn').onclick = () => {
-    if(input.value && user.value) {
-      push(messagesRef, {
-        username: user.value,
-        text: input.value,
-        time: Date.now()
-      }).catch(err => alert("Error: " + err.message));
-      input.value = '';
+    async function saveUserProfile(username, profile) {
+        await set(ref(db, `userProfiles/${username}`), profile);
+        userProfiles.set(username, profile);
     }
-  };
 
-  // Load Messages
-  onChildAdded(messagesRef, (snapshot) => {
-    const msg = snapshot.val();
-    const div = document.createElement('div');
-    div.innerHTML = `<span style="color:#007bff; font-weight:bold;">${msg.username}:</span> ${msg.text}`;
-    div.style.margin = "5px 0";
-    display.appendChild(div);
-    display.scrollTop = display.scrollHeight;
-  });
+    function getProfileForUser(username) {
+        if (userProfiles.has(username)) return userProfiles.get(username);
+        const initial = username.charAt(0).toUpperCase();
+        return { name: username, avatarColor: "#9c6bff", avatarInitial: initial, avatarUrl: null };
+    }
+
+    async function deleteMessagesByUser(username) {
+        if (!isAdminMode && currentUser !== "Johan06") return alert("Admin mode required");
+        const snapshot = await get(messagesRef);
+        const updates = {};
+        snapshot.forEach(child => {
+            if (child.val().username === username) {
+                updates[child.key] = null;
+            }
+        });
+        if (Object.keys(updates).length === 0) return alert(`No messages from "${username}"`);
+        await update(ref(db), { 'messages': updates });
+        alert(`Deleted ${Object.keys(updates).length} messages from ${username}`);
+    }
+
+    async function renameUserMessages(oldName, newName) {
+        if (!isAdminMode && currentUser !== "Johan06") return alert("Admin mode required");
+        const snapshot = await get(messagesRef);
+        const updates = {};
+        snapshot.forEach(child => {
+            if (child.val().username === oldName) {
+                updates[child.key] = { ...child.val(), username: newName };
+            }
+        });
+        if (Object.keys(updates).length === 0) return alert(`No messages from ${oldName}`);
+        for (let key in updates) {
+            await set(ref(db, `messages/${key}`), updates[key]);
+        }
+        const oldProfile = getProfileForUser(oldName);
+        await saveUserProfile(newName, { ...oldProfile, name: newName });
+        if (oldName !== newName) await remove(ref(db, `userProfiles/${oldName}`));
+        alert(`Renamed ${oldName} → ${newName} across ${Object.keys(updates).length} messages`);
+    }
+
+    async function changeOwnName(newName) {
+        if (newName === currentUser) return;
+        const snapshot = await get(messagesRef);
+        let nameUsed = false;
+        snapshot.forEach(child => {
+            if (child.val().username === newName) nameUsed = true;
+        });
+        if (nameUsed && newName !== "Johan06") return alert("Name already taken");
+        const updates = {};
+        snapshot.forEach(child => {
+            if (child.val().username === currentUser) {
+                updates[child.key] = { ...child.val(), username: newName };
+            }
+        });
+        for (let key in updates) {
+            await set(ref(db, `messages/${key}`), updates[key]);
+        }
+        const oldProfile = getProfileForUser(currentUser);
+        await saveUserProfile(newName, { ...oldProfile, name: newName });
+        await remove(ref(db, `userProfiles/${currentUser}`));
+        currentUser = newName;
+        currentUserProfile = getProfileForUser(currentUser);
+        alert(`Name changed to ${newName}`);
+        if (currentUser === "Johan06") starToggleBtn.style.display = "flex";
+        else starToggleBtn.style.display = "none";
+    }
+
+    async function updateProfilePicture(imageDataUrl, color, initial) {
+        if (imageDataUrl) {
+            currentUserProfile.avatarUrl = imageDataUrl;
+            currentUserProfile.avatarInitial = "";
+        } else {
+            currentUserProfile.avatarColor = color;
+            currentUserProfile.avatarInitial = initial;
+            currentUserProfile.avatarUrl = null;
+        }
+        await saveUserProfile(currentUser, currentUserProfile);
+        messagesDiv.innerHTML = "";
+        messageElements.clear();
+        const snap = await get(messagesRef);
+        snap.forEach(child => renderMessage(child.key, child.val()));
+    }
+
+    function toggleMessageSelection(messageKey, messageElement) {
+        if (!selectModeEnabled) return;
+        
+        if (selectedMessageKeys.has(messageKey)) {
+            selectedMessageKeys.delete(messageKey);
+            messageElement.classList.remove('selected');
+        } else {
+            selectedMessageKeys.add(messageKey);
+            messageElement.classList.add('selected');
+        }
+        updateSelectionBar();
+    }
+
+    function updateSelectionBar() {
+        const existingBar = document.querySelector('.selection-bar');
+        if (existingBar) existingBar.remove();
+        
+        if (selectedMessageKeys.size > 0) {
+            const bar = document.createElement('div');
+            bar.className = 'selection-bar';
+            bar.innerHTML = `
+                <span>📌 ${selectedMessageKeys.size} message(s) selected</span>
+                <button id="delete-selected-btn">🗑️ Delete Selected (${selectedMessageKeys.size})</button>
+                <span class="selection-hint">⌨️ Press DELETE key</span>
+            `;
+            document.querySelector('.chat-container').appendChild(bar);
+            document.getElementById('delete-selected-btn').onclick = deleteSelectedMessages;
+        }
+    }
+
+    async function deleteSelectedMessages() {
+        if (selectedMessageKeys.size === 0) return;
+        if (confirm(`Delete ${selectedMessageKeys.size} selected message(s)?`)) {
+            const updates = {};
+            selectedMessageKeys.forEach(key => {
+                updates[`messages/${key}`] = null;
+            });
+            await update(ref(db), updates);
+            selectedMessageKeys.clear();
+            updateSelectionBar();
+        }
+    }
+
+    // Global keyboard listener for Delete key
+    document.addEventListener('keydown', (e) => {
+        if (selectModeEnabled && selectedMessageKeys.size > 0 && (e.key === 'Delete' || e.key === 'Del')) {
+            e.preventDefault();
+            deleteSelectedMessages();
+        }
+    });
+
+    function renderMessage(key, msg) {
+        if (messageElements.has(key)) {
+            const oldEl = messageElements.get(key);
+            if (oldEl && oldEl.parentNode) oldEl.remove();
+            messageElements.delete(key);
+        }
+        const profile = getProfileForUser(msg.username);
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("message");
+        wrapper.dataset.messageKey = key;
+        const isOwn = (msg.username === currentUser);
+        if (isOwn) wrapper.classList.add("right");
+        else wrapper.classList.add("left");
+        
+        const messageContent = document.createElement("div");
+        messageContent.className = "message-content";
+        
+        const profilePic = document.createElement("div");
+        profilePic.className = "profile-pic";
+        if (profile.avatarUrl) {
+            profilePic.style.backgroundImage = `url(${profile.avatarUrl})`;
+            profilePic.style.backgroundSize = "cover";
+            profilePic.innerText = "";
+        } else {
+            profilePic.style.background = profile.avatarColor;
+            profilePic.innerText = profile.avatarInitial || msg.username.charAt(0).toUpperCase();
+        }
+        profilePic.onclick = (e) => {
+            e.stopPropagation();
+            showProfilePopup(msg.username, profile, e.target);
+        };
+        
+        const textContainer = document.createElement("div");
+        textContainer.className = "message-text-container";
+        
+        const usernameDiv = document.createElement("div");
+        usernameDiv.className = "username-label";
+        if (msg.username === "Johan06") {
+            usernameDiv.innerHTML = `<span class="crown-icon">👑</span> ${escapeHtml(msg.username)}`;
+        } else {
+            usernameDiv.innerText = msg.username;
+        }
+        
+        const bubbleDiv = document.createElement("div");
+        bubbleDiv.className = "bubble";
+        bubbleDiv.innerText = msg.text;
+        
+        // Click handler for selection mode
+        bubbleDiv.onclick = (e) => {
+            e.stopPropagation();
+            if (selectModeEnabled) {
+                toggleMessageSelection(key, wrapper);
+            }
+        };
+        
+        if (isAdminMode && currentUser === "Johan06" && !selectModeEnabled) {
+            const deleteBtn = document.createElement("button");
+            deleteBtn.innerText = "✖";
+            deleteBtn.className = "delete-msg-btn";
+            deleteBtn.onclick = async (e) => {
+                e.stopPropagation();
+                if (confirm("Delete this message?")) await remove(ref(db, `messages/${key}`));
+            };
+            bubbleDiv.appendChild(deleteBtn);
+        }
+        
+        textContainer.appendChild(usernameDiv);
+        textContainer.appendChild(bubbleDiv);
+        messageContent.appendChild(profilePic);
+        messageContent.appendChild(textContainer);
+        wrapper.appendChild(messageContent);
+        messagesDiv.appendChild(wrapper);
+        messageElements.set(key, wrapper);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function showProfilePopup(username, profile, target) {
+        const existing = document.querySelector('.profile-popup');
+        if (existing) existing.remove();
+        const popup = document.createElement('div');
+        popup.className = 'profile-popup';
+        const imgHtml = profile.avatarUrl ? 
+            `<div style="width:50px;height:50px;border-radius:50%;background-image:url(${profile.avatarUrl});background-size:cover;margin:0 auto 10px;"></div>` :
+            `<div style="width:50px;height:50px;border-radius:50%;background:${profile.avatarColor};display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 10px;">${profile.avatarInitial || username.charAt(0)}</div>`;
+        popup.innerHTML = `${imgHtml}<strong>${escapeHtml(username)}</strong>`;
+        const rect = target.getBoundingClientRect();
+        popup.style.left = `${rect.left + window.scrollX - 60}px`;
+        popup.style.top = `${rect.top + window.scrollY - 70}px`;
+        document.body.appendChild(popup);
+        setTimeout(() => popup.remove(), 2500);
+    }
+
+    // Account Settings Modal
+    function openAccountModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        const colors = ['#9c6bff', '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7'];
+        let selectedColor = currentUserProfile.avatarColor;
+        
+        modal.innerHTML = `
+            <div class="account-modal">
+                <h3>Edit Profile</h3>
+                <div class="profile-preview" id="profile-preview" style="background:${currentUserProfile.avatarUrl ? `url(${currentUserProfile.avatarUrl}) center/cover` : currentUserProfile.avatarColor}">
+                    ${!currentUserProfile.avatarUrl ? (currentUserProfile.avatarInitial || currentUser.charAt(0)) : ''}
+                </div>
+                <input type="file" id="avatar-upload" accept="image/*" style="display:none;">
+                <button id="upload-pic-btn" class="upload-btn">📷 Upload Custom Picture</button>
+                <input type="text" id="new-username-input" placeholder="New username" value="${escapeHtml(currentUser)}">
+                <div class="color-picker-row" id="color-picker"></div>
+                <button id="save-profile-btn">Save Changes</button>
+                <button id="close-modal-btn">Cancel</button>
+            </div>
+        `;
+        
+        const preview = modal.querySelector('#profile-preview');
+        const colorRow = modal.querySelector('#color-picker');
+        const fileInput = modal.querySelector('#avatar-upload');
+        const uploadBtn = modal.querySelector('#upload-pic-btn');
+        let uploadedImageData = null;
+        
+        colors.forEach(c => {
+            const btn = document.createElement('div');
+            btn.className = 'color-option';
+            btn.style.background = c;
+            if (c === currentUserProfile.avatarColor && !currentUserProfile.avatarUrl) btn.classList.add('selected');
+            btn.onclick = () => {
+                modal.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedColor = c;
+                if (!uploadedImageData && !currentUserProfile.avatarUrl) {
+                    preview.style.background = c;
+                    preview.innerText = currentUserProfile.avatarInitial || currentUser.charAt(0);
+                }
+            };
+            colorRow.appendChild(btn);
+        });
+        
+        uploadBtn.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    uploadedImageData = event.target.result;
+                    preview.style.backgroundImage = `url(${uploadedImageData})`;
+                    preview.style.backgroundSize = "cover";
+                    preview.innerText = "";
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        
+        const usernameInput = modal.querySelector('#new-username-input');
+        usernameInput.oninput = () => {
+            const val = usernameInput.value.trim();
+            if (!uploadedImageData && !currentUserProfile.avatarUrl) {
+                preview.style.background = selectedColor;
+                preview.innerText = val ? val.charAt(0).toUpperCase() : '?';
+            }
+        };
+        
+        modal.querySelector('#save-profile-btn').onclick = async () => {
+            const newName = usernameInput.value.trim();
+            if (newName && newName !== currentUser) {
+                await changeOwnName(newName);
+            }
+            if (uploadedImageData) {
+                await updateProfilePicture(uploadedImageData, selectedColor, "");
+            } else {
+                await updateProfilePicture(null, selectedColor, currentUser.charAt(0).toUpperCase());
+            }
+            modal.remove();
+        };
+        modal.querySelector('#close-modal-btn').onclick = () => modal.remove();
+        document.body.appendChild(modal);
+    }
+
+    // Event listeners
+    if (accountSettingsBtn) accountSettingsBtn.onclick = openAccountModal;
+    
+    if (adminPanelToggle) {
+        adminPanelToggle.onclick = () => {
+            if (!isAdminMode && currentUser !== "Johan06") {
+                const code = prompt("Enter admin override code:");
+                if (code === "PurpleMania") alert("Code accepted.");
+                else return;
+            }
+            if (adminDrawer) adminDrawer.classList.toggle('open');
+        };
+    }
+
+    if (starToggleBtn) {
+        starToggleBtn.onclick = () => {
+            if (currentUser !== "Johan06") return;
+            isAdminMode = !isAdminMode;
+            if (isAdminMode) starToggleBtn.classList.add('star-active');
+            else starToggleBtn.classList.remove('star-active');
+        };
+    }
+
+    // Admin button handlers
+    document.getElementById("clear-all-msgs")?.addEventListener('click', async () => {
+        if (!isAdminMode && currentUser !== "Johan06") return alert("Admin only");
+        if (confirm("Clear all messages?")) await remove(messagesRef);
+    });
+    document.getElementById("delete-user-msgs")?.addEventListener('click', () => {
+        const user = document.getElementById("target-username")?.value.trim();
+        if (user) deleteMessagesByUser(user);
+    });
+    document.getElementById("pause-chat-btn")?.addEventListener('click', () => {
+        if (!isAdminMode && currentUser !== "Johan06") return alert("Admin only");
+        isChatPaused = !isChatPaused;
+        set(ref(db, 'adminConfig/chatPaused'), isChatPaused);
+    });
+    document.getElementById("add-blocked-name")?.addEventListener('click', () => {
+        let name = document.getElementById("block-name-input")?.value.trim();
+        if (name && name !== "Johan06") { blockedNames.add(name); set(ref(db, 'adminConfig/blockedNames'), Array.from(blockedNames)); renderBlockedNames(); }
+    });
+    document.getElementById("add-blocked-word")?.addEventListener('click', () => {
+        let word = document.getElementById("block-word-input")?.value.trim().toLowerCase();
+        if (word) { blockedWords.add(word); set(ref(db, 'adminConfig/blockedWords'), Array.from(blockedWords)); renderBlockedWords(); }
+    });
+    document.getElementById("rename-user-btn")?.addEventListener('click', () => {
+        const oldName = document.getElementById("old-username")?.value.trim();
+        const newName = document.getElementById("new-username")?.value.trim();
+        if (oldName && newName) renameUserMessages(oldName, newName);
+    });
+    document.getElementById("enable-select-mode")?.addEventListener('click', async () => {
+        if (!isAdminMode && currentUser !== "Johan06") return alert("Admin only");
+        selectModeEnabled = true;
+        selectedMessageKeys.clear();
+        messagesDiv.classList.add('selection-mode-active');
+        updateSelectionBar();
+        // Re-render to ensure clean state
+        messagesDiv.innerHTML = "";
+        messageElements.clear();
+        const snap = await get(messagesRef);
+        snap.forEach(child => renderMessage(child.key, child.val()));
+        alert("Selection mode enabled! Click on any message bubble to select. Press DELETE key to delete selected messages.");
+    });
+    document.getElementById("disable-select-mode")?.addEventListener('click', async () => {
+        selectModeEnabled = false;
+        selectedMessageKeys.clear();
+        messagesDiv.classList.remove('selection-mode-active');
+        const bar = document.querySelector('.selection-bar');
+        if (bar) bar.remove();
+        messagesDiv.innerHTML = "";
+        messageElements.clear();
+        const snap = await get(messagesRef);
+        snap.forEach(child => renderMessage(child.key, child.val()));
+    });
+
+    function renderBlockedNames() {
+        const container = document.getElementById("blocked-names-list");
+        if (!container) return;
+        container.innerHTML = "";
+        blockedNames.forEach(name => {
+            const badge = document.createElement('div');
+            badge.className = 'word-badge';
+            badge.innerHTML = `${escapeHtml(name)} <button class="remove-word">✖</button>`;
+            badge.querySelector('.remove-word').onclick = () => { blockedNames.delete(name); set(ref(db, 'adminConfig/blockedNames'), Array.from(blockedNames)); renderBlockedNames(); };
+            container.appendChild(badge);
+        });
+    }
+
+    function renderBlockedWords() {
+        const container = document.getElementById("blocked-words-list");
+        if (!container) return;
+        container.innerHTML = "";
+        blockedWords.forEach(word => {
+            const badge = document.createElement('div');
+            badge.className = 'word-badge';
+            badge.innerHTML = `${escapeHtml(word)} <button class="remove-word">✖</button>`;
+            badge.querySelector('.remove-word').onclick = () => { blockedWords.delete(word); set(ref(db, 'adminConfig/blockedWords'), Array.from(blockedWords)); renderBlockedWords(); };
+            container.appendChild(badge);
+        });
+    }
+
+    // Login
+    document.getElementById("login-btn")?.addEventListener('click', async () => {
+        const name = document.getElementById("login-name")?.value.trim();
+        if (!name) return;
+        if (name === "Johan06") {
+            const code = prompt("Enter admin master code:");
+            if (code !== "PurpleMania") { 
+                const errorMsg = document.getElementById("error-msg");
+                if (errorMsg) errorMsg.innerText = "Invalid code."; 
+                return; 
+            }
+        } else {
+            const snapshot = await get(messagesRef);
+            let taken = false;
+            snapshot.forEach(child => { if (child.val().username === name) taken = true; });
+            if (taken) { 
+                const errorMsg = document.getElementById("error-msg");
+                if (errorMsg) errorMsg.innerText = "Name taken."; 
+                return; 
+            }
+        }
+        currentUser = name;
+        currentUserProfile = { name, avatarColor: "#9c6bff", avatarInitial: name.charAt(0).toUpperCase(), avatarUrl: null };
+        await saveUserProfile(name, currentUserProfile);
+        if (loginScreen) loginScreen.style.display = "none";
+        if (currentUser === "Johan06" && starToggleBtn) starToggleBtn.style.display = "flex";
+        await loadProfiles();
+        const configSnap = await get(ref(db, 'adminConfig'));
+        if (configSnap.exists()) {
+            const data = configSnap.val();
+            if (data.blockedNames) blockedNames = new Set(data.blockedNames);
+            if (data.blockedWords) blockedWords = new Set(data.blockedWords);
+            if (typeof data.chatPaused === 'boolean') isChatPaused = data.chatPaused;
+            renderBlockedNames(); 
+            renderBlockedWords();
+            const pauseBtn = document.getElementById("pause-chat-btn");
+            if (pauseBtn) pauseBtn.innerText = isChatPaused ? "▶️ Resume Chat" : "⏸️ Pause Chat";
+        }
+    });
+
+    if (sendBtn) {
+        sendBtn.onclick = async () => {
+            if (!messageInput || !messageInput.value.trim()) return;
+            if (isChatPaused && currentUser !== "Johan06") return alert("Chat paused");
+            if (blockedNames.has(currentUser) && currentUser !== "Johan06") return alert("You are blocked");
+            let text = messageInput.value.trim();
+            for (let w of blockedWords) text = text.replace(new RegExp(`\\b${escapeRegex(w)}\\b`, 'gi'), '█'.repeat(w.length));
+            await push(messagesRef, { username: currentUser, text, time: Date.now() });
+            messageInput.value = "";
+        };
+    }
+
+    if (messageInput) {
+        messageInput.addEventListener("keypress", e => { if (e.key === "Enter" && sendBtn) sendBtn.click(); });
+    }
+
+    function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+    function escapeHtml(s) { 
+        if (!s) return '';
+        return s.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); 
+    }
+
+    onChildAdded(messagesRef, async (snap) => { 
+        await loadProfiles(); 
+        renderMessage(snap.key, snap.val()); 
+    });
+    
+    onChildRemoved(messagesRef, (snap) => {
+        if (messageElements.has(snap.key)) messageElements.get(snap.key)?.remove();
+        messageElements.delete(snap.key);
+        if (selectedMessageKeys.has(snap.key)) {
+            selectedMessageKeys.delete(snap.key);
+            updateSelectionBar();
+        }
+    });
+    
+    onValue(ref(db, 'adminConfig'), (snap) => {
+        if (snap.exists()) {
+            const data = snap.val();
+            if (data.blockedNames) blockedNames = new Set(data.blockedNames);
+            if (data.blockedWords) blockedWords = new Set(data.blockedWords);
+            if (typeof data.chatPaused === 'boolean') isChatPaused = data.chatPaused;
+            renderBlockedNames(); 
+            renderBlockedWords();
+            const pauseBtn = document.getElementById("pause-chat-btn");
+            if (pauseBtn) pauseBtn.innerText = isChatPaused ? "▶️ Resume Chat" : "⏸️ Pause Chat";
+            const pauseStatusSpan = document.getElementById("pause-status-text");
+            if (pauseStatusSpan) pauseStatusSpan.innerText = isChatPaused ? "⚠️ Chat paused: only Johan06 can speak" : "Chat active";
+        }
+    });
+    
+    if (statusSpan) {
+        onValue(connectedRef, (snap) => { 
+            statusSpan.innerText = snap.val() ? "● Online" : "○ Offline"; 
+        });
+    }
 </script>
-
 </body>
 </html>
-
