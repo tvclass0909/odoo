@@ -181,11 +181,103 @@
             color: transparent;
             text-shadow: 0 0 20px var(--glow-purple);
             animation: pulse 2s infinite;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo.exploding {
+            animation: explode 0.5s ease forwards;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(1); opacity: 1; }
+            30% { transform: scale(1.8); opacity: 0.8; text-shadow: 0 0 50px red, 0 0 100px orange; }
+            100% { transform: scale(0); opacity: 0; display: none; }
+        }
+
+        .logo-replaced {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--neon-green);
+            text-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--green);
+            text-align: center;
+            animation: neonPulse 1s infinite;
+            position: relative;
+        }
+
+        .sparkle {
+            position: absolute;
+            font-size: 20px;
+            pointer-events: none;
+            animation: sparkleFloat 1s ease-out forwards;
+        }
+
+        @keyframes sparkleFloat {
+            0% { opacity: 1; transform: scale(1) translate(0, 0); }
+            100% { opacity: 0; transform: scale(0.5) translate(var(--tx, 0), var(--ty, -50px)); }
+        }
+
+        @keyframes neonPulse {
+            0%, 100% { text-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--green); }
+            50% { text-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--green), 0 0 60px var(--cyan); }
         }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.9; text-shadow: 0 0 30px var(--gold); }
+        }
+
+        /* Thunderbolt animation */
+        .thunderbolt {
+            position: fixed;
+            background: linear-gradient(135deg, var(--neon-yellow), var(--gold), white);
+            clip-path: polygon(50% 0%, 40% 40%, 60% 40%, 45% 60%, 55% 60%, 35% 100%, 50% 70%, 40% 70%, 60% 30%);
+            animation: thunderFlash 0.1s linear infinite, thunderMove 3s ease-out forwards;
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        @keyframes thunderFlash {
+            0%, 100% { opacity: 1; box-shadow: 0 0 20px gold, 0 0 40px yellow; }
+            50% { opacity: 0.7; box-shadow: 0 0 40px white, 0 0 80px gold; }
+        }
+
+        @keyframes thunderMove {
+            0% { transform: translateX(-100px) translateY(-100px) scale(1); opacity: 1; }
+            100% { transform: translateX(calc(100vw + 200px)) translateY(calc(100vh + 200px)) scale(0.5); opacity: 0; }
+        }
+
+        /* Explosion particles */
+        .explosion-particle {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--neon-red), var(--gold), var(--neon-yellow));
+            pointer-events: none;
+            z-index: 10001;
+            animation: particleExplode 0.8s ease-out forwards;
+        }
+
+        @keyframes particleExplode {
+            0% { transform: scale(1) translate(0, 0); opacity: 1; }
+            100% { transform: scale(0) translate(var(--px, 0), var(--py, 0)); opacity: 0; }
+        }
+
+        /* Screen shake */
+        .screen-shake {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
 
         #status {
@@ -227,7 +319,6 @@
             border-radius: 16px;
             background: rgba(255,255,255,0.03);
             transition: all 0.3s;
-            animation: slideInLeft 0.3s ease;
         }
 
         .online-user-item:hover {
@@ -262,7 +353,7 @@
             font-weight: bold;
         }
 
-        /* CHAT CONTAINER */
+        /* Chat styles (unchanged from previous working version) */
         .chat-container {
             flex: 1;
             display: flex;
@@ -321,7 +412,6 @@
             gap: 4px;
         }
 
-        /* Message Bubble - username ABOVE bubble */
         .message {
             margin-bottom: 16px;
             display: flex;
@@ -332,14 +422,8 @@
         }
 
         @keyframes messageAppear {
-            from {
-                opacity: 0;
-                transform: translateY(20px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .left { align-items: flex-start; align-self: flex-start; }
@@ -385,7 +469,6 @@
             flex-direction: column;
         }
 
-        /* Username ABOVE the bubble */
         .username-label {
             font-weight: 700;
             margin-bottom: 6px;
@@ -395,12 +478,8 @@
             gap: 8px;
         }
 
-        .left .username-label {
-            justify-content: flex-start;
-        }
-        .right .username-label {
-            justify-content: flex-end;
-        }
+        .left .username-label { justify-content: flex-start; }
+        .right .username-label { justify-content: flex-end; }
 
         .crown-icon {
             color: var(--gold);
@@ -446,7 +525,6 @@
             filter: brightness(1.05);
         }
 
-        /* Delete warning above message bubble */
         .delete-warning {
             position: absolute;
             top: -30px;
@@ -471,7 +549,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* TYPING INDICATOR */
         .typing-indicator {
             display: flex;
             align-items: center;
@@ -510,7 +587,6 @@
             30% { transform: translateY(-8px); opacity: 1; }
         }
 
-        /* Admin Drawer */
         .admin-drawer {
             width: 0;
             overflow-x: hidden;
@@ -581,7 +657,6 @@
             border: 1px solid var(--violet);
         }
 
-        /* Input Area */
         .input-area {
             padding: 20px 28px;
             background: rgba(0, 0, 0, 0.4);
@@ -639,7 +714,6 @@
             box-shadow: 0 0 20px var(--glow-purple);
         }
 
-        /* EMOJI PICKER */
         .emoji-picker {
             position: absolute;
             bottom: 80px;
@@ -673,7 +747,6 @@
             transform: scale(1.2);
         }
 
-        /* Modal */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -713,7 +786,6 @@
             box-shadow: 0 0 20px var(--glow-purple);
         }
 
-        /* Horizontal color picker */
         .color-picker-row {
             display: flex;
             gap: 8px;
@@ -737,13 +809,59 @@
         .color-option.selected { border-color: white; transform: scale(1.15); box-shadow: 0 0 15px white; }
 
         .upload-btn, .rgb-btn {
-            background: var(--dark-grey);
+            background: linear-gradient(135deg, var(--dark-grey), #1a1a2e);
             border: 1px solid var(--cyan);
-            padding: 8px 18px;
+            padding: 10px 20px;
             border-radius: 40px;
             cursor: pointer;
             margin: 6px;
             color: white;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .upload-btn:hover, .rgb-btn:hover {
+            background: var(--cyan);
+            color: black;
+            transform: scale(1.02);
+            box-shadow: 0 0 15px var(--glow-cyan);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .save-btn {
+            flex: 1;
+            background: linear-gradient(135deg, var(--neon-green), var(--green));
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+        .save-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px var(--glow-green);
+        }
+        .cancel-btn {
+            flex: 1;
+            background: linear-gradient(135deg, var(--dark-grey), #2a2a3a);
+            border: 1px solid var(--neon-red);
+            padding: 12px;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .cancel-btn:hover {
+            background: var(--neon-red);
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(255, 0, 64, 0.5);
         }
 
         .profile-popup {
@@ -778,7 +896,7 @@
 
 <div id="chat-app" style="display: none;">
     <div class="sidebar">
-        <div class="logo">✦ NOVACHAT</div>
+        <div class="logo" id="nova-logo">✦ NOVACHAT</div>
         <div id="status">● Connecting...</div>
         <div class="online-users-section">
             <h4>🌟 ONLINE STARS</h4>
@@ -863,6 +981,7 @@
     let pendingDeleteKey = null;
     let deleteTimeout = null;
     let typingTimeout = null;
+    let logoClickCount = 0;
 
     const loginScreen = document.getElementById('login-screen');
     const chatApp = document.getElementById('chat-app');
@@ -877,8 +996,90 @@
     const onlineListDiv = document.getElementById('online-list');
     const typingArea = document.getElementById('typing-area');
     const emojiBtn = document.getElementById('emoji-btn');
+    const logoElement = document.getElementById('nova-logo');
 
-    // Common emojis
+    // Explosion and thunder effect function
+    function triggerExplosionAndThunder() {
+        // Screen shake
+        document.body.classList.add('screen-shake');
+        setTimeout(() => document.body.classList.remove('screen-shake'), 300);
+        
+        // Create explosion particles
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'explosion-particle';
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 100 + Math.random() * 200;
+            const tx = Math.cos(angle) * distance;
+            const ty = Math.sin(angle) * distance;
+            particle.style.setProperty('--px', `${tx}px`);
+            particle.style.setProperty('--py', `${ty}px`);
+            particle.style.left = `${window.innerWidth / 2 + (Math.random() - 0.5) * 100}px`;
+            particle.style.top = `${window.innerHeight / 2 + (Math.random() - 0.5) * 100}px`;
+            document.body.appendChild(particle);
+            setTimeout(() => particle.remove(), 800);
+        }
+        
+        // Create thunderbolts across screen
+        for (let i = 0; i < 12; i++) {
+            setTimeout(() => {
+                const thunder = document.createElement('div');
+                thunder.className = 'thunderbolt';
+                const startX = Math.random() * window.innerWidth;
+                const startY = Math.random() * window.innerHeight;
+                const size = 30 + Math.random() * 40;
+                thunder.style.width = `${size}px`;
+                thunder.style.height = `${size * 1.5}px`;
+                thunder.style.left = `${startX}px`;
+                thunder.style.top = `${startY}px`;
+                thunder.style.transform = `rotate(${Math.random() * 360}deg)`;
+                document.body.appendChild(thunder);
+                setTimeout(() => thunder.remove(), 3000);
+            }, i * 100);
+        }
+        
+        // Add sparkles around the new username
+        const replacedElement = document.querySelector('.logo-replaced');
+        if (replacedElement) {
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'sparkle';
+                    sparkle.innerText = ['✨', '⭐', '💫', '🌟', '⚡', '💥'][Math.floor(Math.random() * 6)];
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = 40 + Math.random() * 60;
+                    const tx = Math.cos(angle) * radius;
+                    const ty = Math.sin(angle) * radius - 30;
+                    sparkle.style.setProperty('--tx', `${tx}px`);
+                    sparkle.style.setProperty('--ty', `${ty}px`);
+                    const rect = replacedElement.getBoundingClientRect();
+                    sparkle.style.left = `${rect.left + rect.width / 2}px`;
+                    sparkle.style.top = `${rect.top + rect.height / 2}px`;
+                    document.body.appendChild(sparkle);
+                    setTimeout(() => sparkle.remove(), 1000);
+                }, i * 80);
+            }
+        }
+    }
+
+    // Logo click handler - 16 clicks to explode
+    logoElement.addEventListener('click', () => {
+        if (!currentUser) return;
+        logoClickCount++;
+        if (logoClickCount >= 16) {
+            logoElement.classList.add('exploding');
+            setTimeout(() => {
+                logoElement.style.display = 'none';
+                const newElement = document.createElement('div');
+                newElement.className = 'logo-replaced';
+                newElement.innerText = currentUser.toUpperCase();
+                logoElement.parentElement.insertBefore(newElement, logoElement.nextSibling);
+                // Trigger explosion effects
+                triggerExplosionAndThunder();
+            }, 500);
+        }
+    });
+
     const emojis = ['😀', '😂', '😍', '🥰', '😎', '😭', '🤔', '😡', '👍', '❤️', '🔥', '✨', '⭐', '💀', '🎉', '🥳', '😴', '😈', '👑', '💀', '🪄', '🌈', '⚡', '💎'];
 
     function escapeHtml(s) { return s?.replace(/[&<>]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m])) || ''; }
@@ -1103,14 +1304,14 @@
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
-    // Account Modal with horizontal color picker
+    // Account Modal (same as before, shortened for brevity - kept functional)
     function openAccountModal() {
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
         const presetColors = ['#9b30ff', '#bf4dff', '#8b00ff', '#39ff14', '#00ff88', '#0088ff', '#00e5ff', '#ffd700', '#ffff00', '#ff3333', '#ff0040', '#000000', '#1a1a24'];
         let selectedColor = currentUserProfile.avatarColor || '#9b30ff';
         let uploadedImage = null;
-        modal.innerHTML = `<div class="account-modal"><h3>✨ EDIT PROFILE ✨</h3><div class="profile-preview" id="preview" style="background:${currentUserProfile.avatarUrl ? `url(${currentUserProfile.avatarUrl}) center/cover` : selectedColor}">${!currentUserProfile.avatarUrl ? (currentUser === 'Johan06' ? 'J' : currentUser.charAt(0).toUpperCase()) : ''}</div><button id="uploadBtn" class="upload-btn">📷 UPLOAD</button><input type="file" id="fileInput" accept="image/*" style="display:none"><div class="color-picker-row" id="presetRow"></div><button id="rgbBtn" class="rgb-btn">🎨 RGB WHEEL</button><div id="rgbPicker" style="display:none"><input type="color" id="colorWheel" value="${selectedColor}"></div><input type="text" id="newName" placeholder="New username" value="${escapeHtml(currentUser)}"><button id="saveBtn">💾 SAVE CHANGES</button><button id="closeBtn">❌ CANCEL</button></div>`;
+        modal.innerHTML = `<div class="account-modal"><h3>✨ EDIT PROFILE ✨</h3><div class="profile-preview" id="preview" style="background:${currentUserProfile.avatarUrl ? `url(${currentUserProfile.avatarUrl}) center/cover` : selectedColor}">${!currentUserProfile.avatarUrl ? (currentUser === 'Johan06' ? 'J' : currentUser.charAt(0).toUpperCase()) : ''}</div><button id="uploadBtn" class="upload-btn">📷 UPLOAD PICTURE</button><input type="file" id="fileInput" accept="image/*" style="display:none"><div class="color-picker-row" id="presetRow"></div><button id="rgbBtn" class="rgb-btn">🎨 RGB COLOR WHEEL</button><div id="rgbPicker" style="display:none"><input type="color" id="colorWheel" value="${selectedColor}"></div><input type="text" id="newName" placeholder="New username" value="${escapeHtml(currentUser)}"><div class="modal-buttons"><button id="saveBtn" class="save-btn">💾 SAVE CHANGES</button><button id="closeBtn" class="cancel-btn">❌ CANCEL</button></div></div>`;
         const preview = modal.querySelector('#preview');
         const presetRow = modal.querySelector('#presetRow');
         presetColors.forEach(c => {
