@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>NovaChat • Neon Evolution</title>
     <style>
-        /* ========== ALL EXISTING STYLES (unchanged from previous full answer) ========== */
         * {
             margin: 0;
             padding: 0;
@@ -681,7 +680,7 @@
             border: 1px solid rgba(155,48,255,0.5); animation: scaleIn 0.4s ease;
         }
 
-        /* Emoji picker popup wrapper */
+        /* Emoji picker popup */
         .emoji-picker-popup {
             position: absolute;
             bottom: 80px;
@@ -824,6 +823,25 @@
 
         .gif-item:hover { border-color: var(--neon-purple); box-shadow: 0 0 15px var(--glow-purple); transform: scale(1.05); }
 
+        /* Password Modal */
+        .password-modal-content {
+            background: var(--bg-card); border-radius: 48px; padding: 32px; width: 400px;
+            text-align: center; border: 1px solid var(--neon-purple);
+            box-shadow: 0 0 50px var(--glow-purple); animation: slideUp 0.3s ease;
+        }
+        .password-modal-content h3 { color: var(--cyan); margin-bottom: 12px; }
+        .password-modal-content input {
+            width: 100%; padding: 14px 20px; border-radius: 60px;
+            border: 1px solid var(--dark-grey); background: var(--bg-darker);
+            color: var(--text-primary); font-size: 1rem; margin: 16px 0;
+            transition: all 0.3s;
+        }
+        .password-modal-content input:focus {
+            outline: none; border-color: var(--neon-purple);
+            box-shadow: 0 0 15px var(--glow-purple);
+        }
+        .password-modal-content .modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-darker); }
         ::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 10px; }
@@ -881,7 +899,6 @@
     </div>
 </div>
 
-<!-- Emoji picker element (loaded via CDN) -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, push, onChildAdded, onChildRemoved, onValue, get, set, remove, update } 
@@ -950,6 +967,50 @@
     const attachmentPreviewArea = document.getElementById('attachment-preview-area');
     const logoElement = document.getElementById('nova-logo');
     const themeToggle = document.getElementById('theme-toggle');
+
+    // ---------- Custom Password Modal ----------
+    function showPasswordModal(title, message) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="password-modal-content">
+                    <h3>${title}</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 12px;">${message}</p>
+                    <input type="password" id="password-input" placeholder="Enter password" autocomplete="off">
+                    <div class="modal-buttons">
+                        <button id="password-cancel" class="cancel-btn">Cancel</button>
+                        <button id="password-submit" class="save-btn">Submit</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            const input = overlay.querySelector('#password-input');
+            const submitBtn = overlay.querySelector('#password-submit');
+            const cancelBtn = overlay.querySelector('#password-cancel');
+
+            const cleanup = () => overlay.remove();
+
+            const submit = () => {
+                const value = input.value.trim();
+                cleanup();
+                resolve(value);
+            };
+
+            submitBtn.addEventListener('click', submit);
+            cancelBtn.addEventListener('click', () => {
+                cleanup();
+                resolve(null);
+            });
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') submit();
+            });
+
+            // Auto-focus the input
+            setTimeout(() => input.focus(), 100);
+        });
+    }
 
     // Light mode toggle
     function initTheme() {
@@ -1061,9 +1122,8 @@
         }
     });
 
-    // New emoji picker using emoji-picker-element
+    // Emoji picker (unchanged)
     let emojiPickerPopup = null;
-
     emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (emojiPickerPopup) {
@@ -1071,7 +1131,6 @@
             emojiPickerPopup = null;
             return;
         }
-        // Create popup wrapper
         const popup = document.createElement('div');
         popup.className = 'emoji-picker-popup';
         const picker = document.createElement('emoji-picker');
@@ -1079,13 +1138,6 @@
         document.querySelector('.input-area').appendChild(popup);
         emojiPickerPopup = popup;
 
-        // Position near the emoji button
-        const rect = emojiBtn.getBoundingClientRect();
-        popup.style.position = 'absolute';
-        popup.style.bottom = '80px';
-        popup.style.left = '20px';
-
-        // Listen for emoji selection
         picker.addEventListener('emoji-click', (event) => {
             messageInput.value += event.detail.emoji.unicode;
             messageInput.focus();
@@ -1093,7 +1145,6 @@
             emojiPickerPopup = null;
         });
 
-        // Close on outside click
         setTimeout(() => {
             document.addEventListener('click', function closePicker(ev) {
                 if (!popup.contains(ev.target) && ev.target !== emojiBtn) {
@@ -1338,7 +1389,10 @@
         modal.querySelector('#saveBtn').onclick = async () => {
             const newName = modal.querySelector('#newName').value.trim();
             if (newName && newName !== currentUser) {
-                if (newName === 'Johan06') { const code = prompt('Enter admin code:'); if (code !== 'PurpleMania') { alert('Invalid code!'); modal.remove(); return; } }
+                if (newName === 'Johan06') {
+                    const code = await showPasswordModal('Admin Verification', 'Enter the master code to claim the Johan06 identity:');
+                    if (code !== 'PurpleMania') { alert('Invalid code!'); modal.remove(); return; }
+                }
                 const modSnap = await get(moderatorsRef);
                 if (modSnap.exists() && modSnap.hasChild(newName)) { alert('Name is reserved for a moderator.'); modal.remove(); return; }
                 const snap = await get(messagesRef);
@@ -1801,14 +1855,15 @@
         });
     }
 
-    // Login (unchanged)
+    // Login with custom password modals
     document.getElementById('login-btn').onclick = async () => {
         const name = document.getElementById('login-name').value.trim();
         if (!name) { document.getElementById('error-msg').innerText = 'Enter a name!'; return; }
 
         const modSnap = await get(ref(db, `moderators/${name}`));
         if (modSnap.exists()) {
-            const password = prompt('Enter moderator password:');
+            // Moderator login
+            const password = await showPasswordModal('Moderator Login', `Enter password for @${name}:`);
             if (!password || password !== modSnap.val().password) {
                 document.getElementById('error-msg').innerText = 'Invalid moderator password.';
                 return;
@@ -1819,13 +1874,15 @@
             currentUserProfile = getProfile(name) || { name: currentUser, avatarColor: '#00e5ff', avatarUrl: null };
             await saveProfile(currentUser, currentUserProfile);
         } else if (name === 'Johan06') {
-            const code = prompt('Enter admin master code:');
-            if (code !== 'PurpleMania') { document.getElementById('error-msg').innerText = 'Invalid code.'; return; }
+            // Admin login
+            const code = await showPasswordModal('Admin Login', 'Enter the master code:');
+            if (code !== 'PurpleMania') { document.getElementById('error-msg').innerText = 'Invalid admin code.'; return; }
             currentUser = name;
             userRole = 'admin';
             currentUserProfile = { name: currentUser, avatarColor: '#ffd700', avatarUrl: null };
             await saveProfile(currentUser, currentUserProfile);
         } else {
+            // Normal user
             const snap = await get(messagesRef);
             let taken = false;
             snap.forEach(c => { if (c.val().username === name) taken = true; });
