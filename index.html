@@ -195,12 +195,12 @@
         }
 
         .sidebar {
-            width: 300px;
+            width: 320px;
             background: var(--sidebar-bg);
             padding: 24px 20px;
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 16px;
             border-right: 1px solid rgba(155, 48, 255, 0.3);
             backdrop-filter: blur(10px);
             overflow-y: auto;
@@ -334,7 +334,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            max-height: 350px;
+            max-height: 200px;
             overflow-y: auto;
         }
 
@@ -600,13 +600,13 @@
             padding-left: 12px;
         }
 
-        .admin-btn {
+        .admin-btn, .sidebar-btn {
             background: linear-gradient(135deg, var(--dark-grey), #1a1a2e);
             border: 1px solid var(--neon-purple); color: white; padding: 8px 16px;
-            border-radius: 40px; cursor: pointer; margin: 4px; transition: all 0.3s; font-size: 0.9rem;
+            border-radius: 40px; cursor: pointer; margin: 4px; transition: all 0.3s; font-size: 0.85rem;
         }
 
-        .admin-btn:hover {
+        .admin-btn:hover, .sidebar-btn:hover {
             background: var(--neon-purple); transform: translateY(-2px); box-shadow: 0 5px 15px var(--glow-purple);
         }
 
@@ -680,7 +680,6 @@
             border: 1px solid rgba(155,48,255,0.5); animation: scaleIn 0.4s ease;
         }
 
-        /* Emoji picker popup */
         .emoji-picker-popup {
             position: absolute;
             bottom: 80px;
@@ -715,8 +714,8 @@
             display: flex; justify-content: center; align-items: center; z-index: 2000; animation: fadeIn 0.3s ease;
         }
 
-        .account-modal {
-            background: var(--bg-card); border-radius: 48px; padding: 32px; width: 480px;
+        .account-modal, .server-modal {
+            background: var(--bg-card); border-radius: 48px; padding: 32px; width: 400px;
             text-align: center; border: 1px solid var(--neon-purple);
             box-shadow: 0 0 50px var(--glow-purple); animation: slideUp 0.3s ease;
         }
@@ -823,7 +822,6 @@
 
         .gif-item:hover { border-color: var(--neon-purple); box-shadow: 0 0 15px var(--glow-purple); transform: scale(1.05); }
 
-        /* Password Modal */
         .password-modal-content {
             background: var(--bg-card); border-radius: 48px; padding: 32px; width: 400px;
             text-align: center; border: 1px solid var(--neon-purple);
@@ -841,6 +839,22 @@
             box-shadow: 0 0 15px var(--glow-purple);
         }
         .password-modal-content .modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
+
+        .server-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.05);
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .server-item:hover { background: rgba(155, 48, 255, 0.2); }
+        .server-item.active { background: rgba(155, 48, 255, 0.4); border: 1px solid var(--neon-purple); }
+        .server-item .server-icon { font-size: 18px; }
+        .server-item .server-name { flex: 1; font-size: 14px; }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-darker); }
@@ -867,13 +881,25 @@
             <h4>🌟 ONLINE STARS</h4>
             <div id="online-list" class="online-list"></div>
         </div>
+        <!-- Servers Section -->
+        <div style="background: rgba(0,0,0,0.4); border-radius: 20px; padding: 12px; border: 1px solid rgba(155,48,255,0.3);">
+            <h4 style="color: var(--cyan); margin-bottom: 8px;">🌐 SERVERS</h4>
+            <div id="server-list" style="display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; margin-bottom: 8px;"></div>
+            <div style="display: flex; gap: 4px;">
+                <button id="create-server-btn" class="sidebar-btn" style="flex:1;">+ Create</button>
+                <button id="join-server-btn" class="sidebar-btn" style="flex:1;">🔑 Join</button>
+            </div>
+            <div id="public-servers-area" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
+                <!-- Public servers will appear here -->
+            </div>
+        </div>
         <div style="font-size:11px; opacity:0.6; text-align:center;">💫 Click your message to delete</div>
     </div>
 
     <div class="chat-container">
         <div class="chat-header">
             <button id="account-settings-btn" class="top-icon-btn">👤</button>
-            <span style="color: var(--cyan);">💬 GLOBAL NEXUS</span>
+            <span style="color: var(--cyan);" id="current-server-label">💬 GLOBAL NEXUS</span>
             <div class="admin-actions-top">
                 <button id="star-admin-toggle" class="top-icon-btn" style="display: none;">⭐</button>
                 <button id="admin-panel-toggle" class="top-icon-btn" style="display: none;">⚙️</button>
@@ -894,17 +920,14 @@
         <input type="file" id="file-input" accept="image/*,video/*" style="display: none;">
     </div>
 
-    <div id="admin-drawer" class="admin-drawer">
-        <!-- Dynamically built by buildAdminDrawer() -->
-    </div>
+    <div id="admin-drawer" class="admin-drawer"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded, onChildRemoved, onValue, get, set, remove, update } 
+    import { getDatabase, ref, push, onChildAdded, onChildRemoved, onValue, get, set, remove, update, query, orderByChild, equalTo } 
         from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // Import emoji picker
     import 'https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js';
 
     const firebaseConfig = {
@@ -924,6 +947,9 @@
     const typingRef = ref(db, 'typing');
     const moderatorsRef = ref(db, 'moderators');
     const adminConfigRef = ref(db, 'adminConfig');
+    const serversRef = ref(db, 'servers');
+    const serverMessagesRef = ref(db, 'serverMessages');
+    const serverMembersRef = ref(db, 'serverMembers');
 
     const TENOR_API_KEY = "LIVDSRZULELA";
     const TENOR_SEARCH_URL = "https://g.tenor.com/v1/search";
@@ -946,7 +972,11 @@
     let moderatorUsernames = new Set();
     let pendingAttachment = null;
 
-    // DOM elements
+    // Server state
+    let currentServerId = null;
+    let joinedServers = new Map();
+    let activeMessageListener = null;
+
     const loginScreen = document.getElementById('login-screen');
     const chatApp = document.getElementById('chat-app');
     const messagesDiv = document.getElementById('messages');
@@ -967,8 +997,13 @@
     const attachmentPreviewArea = document.getElementById('attachment-preview-area');
     const logoElement = document.getElementById('nova-logo');
     const themeToggle = document.getElementById('theme-toggle');
+    const serverListDiv = document.getElementById('server-list');
+    const createServerBtn = document.getElementById('create-server-btn');
+    const joinServerBtn = document.getElementById('join-server-btn');
+    const publicServersArea = document.getElementById('public-servers-area');
+    const currentServerLabel = document.getElementById('current-server-label');
 
-    // ---------- Custom Password Modal ----------
+    // Custom Password Modal
     function showPasswordModal(title, message) {
         return new Promise((resolve) => {
             const overlay = document.createElement('div');
@@ -985,34 +1020,23 @@
                 </div>
             `;
             document.body.appendChild(overlay);
-
             const input = overlay.querySelector('#password-input');
             const submitBtn = overlay.querySelector('#password-submit');
             const cancelBtn = overlay.querySelector('#password-cancel');
-
             const cleanup = () => overlay.remove();
-
             const submit = () => {
                 const value = input.value.trim();
                 cleanup();
                 resolve(value);
             };
-
             submitBtn.addEventListener('click', submit);
-            cancelBtn.addEventListener('click', () => {
-                cleanup();
-                resolve(null);
-            });
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') submit();
-            });
-
-            // Auto-focus the input
+            cancelBtn.addEventListener('click', () => { cleanup(); resolve(null); });
+            input.addEventListener('keypress', (e) => { if (e.key === 'Enter') submit(); });
             setTimeout(() => input.focus(), 100);
         });
     }
 
-    // Light mode toggle
+    // Light mode
     function initTheme() {
         const saved = localStorage.getItem('novachat-theme');
         if (saved === 'light') {
@@ -1024,7 +1048,6 @@
         }
     }
     initTheme();
-
     themeToggle.addEventListener('click', () => {
         document.body.classList.toggle('light-mode');
         const isLight = document.body.classList.contains('light-mode');
@@ -1049,7 +1072,6 @@
     }
     async function deleteMessage(key) { await remove(ref(db, `messages/${key}`)); }
 
-    // Explosion and thunder (unchanged)
     function triggerExplosionAndThunder() {
         document.body.classList.add('screen-shake');
         setTimeout(() => document.body.classList.remove('screen-shake'), 300);
@@ -1122,7 +1144,7 @@
         }
     });
 
-    // Emoji picker (unchanged)
+    // Emoji picker
     let emojiPickerPopup = null;
     emojiBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1137,14 +1159,12 @@
         popup.appendChild(picker);
         document.querySelector('.input-area').appendChild(popup);
         emojiPickerPopup = popup;
-
         picker.addEventListener('emoji-click', (event) => {
             messageInput.value += event.detail.emoji.unicode;
             messageInput.focus();
             popup.remove();
             emojiPickerPopup = null;
         });
-
         setTimeout(() => {
             document.addEventListener('click', function closePicker(ev) {
                 if (!popup.contains(ev.target) && ev.target !== emojiBtn) {
@@ -1156,7 +1176,7 @@
         }, 10);
     });
 
-    // Typing Indicator (unchanged)
+    // Typing indicator
     messageInput.addEventListener('input', () => {
         if (!currentUser) return;
         set(ref(db, `typing/${currentUser}`), { typing: true, name: currentUser, timestamp: Date.now() });
@@ -1177,7 +1197,7 @@
         } else typingArea.innerHTML = '';
     });
 
-    // Presence (unchanged)
+    // Presence
     let userPresenceRef = null;
     function initPresence() {
         if (!currentUser) return;
@@ -1347,7 +1367,7 @@
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
-    // Account Modal (unchanged)
+    // Account Modal
     function openAccountModal() {
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
@@ -1390,11 +1410,11 @@
             const newName = modal.querySelector('#newName').value.trim();
             if (newName && newName !== currentUser) {
                 if (newName === 'Johan06') {
-                    const code = await showPasswordModal('Admin Verification', 'Enter the master code to claim the Johan06 identity:');
+                    const code = await showPasswordModal('Admin Verification', 'Enter the master code:');
                     if (code !== 'PurpleMania') { alert('Invalid code!'); modal.remove(); return; }
                 }
                 const modSnap = await get(moderatorsRef);
-                if (modSnap.exists() && modSnap.hasChild(newName)) { alert('Name is reserved for a moderator.'); modal.remove(); return; }
+                if (modSnap.exists() && modSnap.hasChild(newName)) { alert('Name reserved for moderator.'); modal.remove(); return; }
                 const snap = await get(messagesRef);
                 let taken = false;
                 snap.forEach(c => { if (c.val().username === newName && c.val().username !== currentUser) taken = true; });
@@ -1482,17 +1502,18 @@
     function attachAdminEventListeners() {
         const clearBtn = document.getElementById('clear-all-msgs');
         if (clearBtn && hasPermission('clearChat')) clearBtn.addEventListener('click', async () => {
-            if (confirm('Clear all messages?')) await remove(messagesRef);
+            if (confirm('Clear all messages?')) await remove(currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef);
         });
 
         const delUserBtn = document.getElementById('delete-user-msgs');
         if (delUserBtn && hasPermission('deleteUserMsgs')) delUserBtn.addEventListener('click', async () => {
             const user = document.getElementById('target-username')?.value.trim();
             if (!user) return;
-            const snap = await get(messagesRef);
+            const targetRef = currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef;
+            const snap = await get(targetRef);
             const deletions = [];
             snap.forEach(c => {
-                if (c.val().username === user) deletions.push(remove(ref(db, `messages/${c.key}`)));
+                if (c.val().username === user) deletions.push(remove(ref(db, `${currentServerId ? 'serverMessages/'+currentServerId : 'messages'}/${c.key}`)));
             });
             await Promise.all(deletions);
             alert(`Deleted ${user}'s messages`);
@@ -1530,10 +1551,11 @@
             const oldN = document.getElementById('old-username')?.value.trim();
             const newN = document.getElementById('new-username')?.value.trim();
             if (!oldN || !newN) return;
-            const snap = await get(messagesRef);
+            const targetRef = currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef;
+            const snap = await get(targetRef);
             const updates = {};
             snap.forEach(c => { if (c.val().username === oldN) updates[c.key] = { ...c.val(), username: newN }; });
-            for (let key in updates) await set(ref(db, `messages/${key}`), updates[key]);
+            for (let key in updates) await set(ref(db, `${currentServerId ? 'serverMessages/'+currentServerId : 'messages'}/${key}`), updates[key]);
             const prof = getProfile(oldN);
             await saveProfile(newN, prof);
             await remove(ref(db, `userProfiles/${oldN}`));
@@ -1653,7 +1675,166 @@
         }
     }
 
-    // ---------- GIF MODAL ----------
+    // ---------- SERVER FUNCTIONS ----------
+    function generateServerCode() {
+        return Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
+    async function joinServerById(serverId, serverData) {
+        if (joinedServers.has(serverId)) return;
+        joinedServers.set(serverId, serverData);
+        await set(ref(db, `serverMembers/${serverId}/${currentUser}`), true);
+        renderServerList();
+        if (!currentServerId) switchServer(serverId);
+    }
+
+    async function switchServer(serverId) {
+        if (activeMessageListener) {
+            activeMessageListener();
+            activeMessageListener = null;
+        }
+        messagesDiv.innerHTML = '';
+        messageElements.clear();
+
+        currentServerId = serverId;
+        if (!serverId) {
+            currentServerLabel.textContent = '💬 GLOBAL NEXUS';
+            const unsubAdded = onChildAdded(messagesRef, async (snap) => {
+                await loadProfiles();
+                renderMessage(snap.key, snap.val());
+            });
+            const unsubRemoved = onChildRemoved(messagesRef, (snap) => {
+                const el = messageElements.get(snap.key);
+                if (el) el.remove();
+                messageElements.delete(snap.key);
+            });
+            activeMessageListener = () => { unsubAdded(); unsubRemoved(); };
+            const snap = await get(messagesRef);
+            snap.forEach(c => renderMessage(c.key, c.val()));
+        } else {
+            const server = joinedServers.get(serverId);
+            currentServerLabel.textContent = `🌐 ${server?.name || 'Server'}`;
+            const msgsRef = ref(db, `serverMessages/${serverId}`);
+            const unsubAdded = onChildAdded(msgsRef, async (snap) => {
+                await loadProfiles();
+                renderMessage(snap.key, snap.val());
+            });
+            const unsubRemoved = onChildRemoved(msgsRef, (snap) => {
+                const el = messageElements.get(snap.key);
+                if (el) el.remove();
+                messageElements.delete(snap.key);
+            });
+            activeMessageListener = () => { unsubAdded(); unsubRemoved(); };
+            const snap = await get(msgsRef);
+            snap.forEach(c => renderMessage(c.key, c.val()));
+        }
+        renderServerList();
+    }
+
+    function renderServerList() {
+        serverListDiv.innerHTML = '';
+        const globalDiv = document.createElement('div');
+        globalDiv.className = 'server-item' + (!currentServerId ? ' active' : '');
+        globalDiv.innerHTML = `<span class="server-icon">🌍</span><span class="server-name">Global Nexus</span>`;
+        globalDiv.addEventListener('click', () => switchServer(null));
+        serverListDiv.appendChild(globalDiv);
+
+        for (let [id, data] of joinedServers) {
+            const div = document.createElement('div');
+            div.className = 'server-item' + (currentServerId === id ? ' active' : '');
+            div.innerHTML = `<span class="server-icon">📌</span><span class="server-name">${escapeHtml(data.name)}</span>`;
+            div.addEventListener('click', () => switchServer(id));
+            serverListDiv.appendChild(div);
+        }
+        loadPublicServers();
+    }
+
+    async function loadPublicServers() {
+        publicServersArea.innerHTML = '<div style="font-size:11px;">Public servers:</div>';
+        const snap = await get(serversRef);
+        if (snap.exists()) {
+            snap.forEach(child => {
+                const server = child.val();
+                if (server.public && !joinedServers.has(child.key)) {
+                    const btn = document.createElement('button');
+                    btn.className = 'sidebar-btn';
+                    btn.style.fontSize = '11px';
+                    btn.style.padding = '4px 8px';
+                    btn.style.margin = '2px';
+                    btn.textContent = server.name;
+                    btn.addEventListener('click', async () => {
+                        await joinServerById(child.key, server);
+                        await switchServer(child.key);
+                    });
+                    publicServersArea.appendChild(btn);
+                }
+            });
+        }
+        if (publicServersArea.children.length === 1) {
+            publicServersArea.innerHTML += '<div style="font-size:11px; opacity:0.6;">No public servers available.</div>';
+        }
+    }
+
+    createServerBtn.addEventListener('click', () => {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+            <div class="server-modal">
+                <h3>✨ Create Server</h3>
+                <input type="text" id="server-name-input" placeholder="Server name" class="admin-input">
+                <input type="text" id="server-code-input" placeholder="Custom code (optional)" class="admin-input">
+                <div class="permission-toggle"><label>Public</label><label class="toggle-switch"><input type="checkbox" id="public-toggle"><span class="slider"></span></label></div>
+                <div class="modal-buttons">
+                    <button id="create-server-submit" class="save-btn">Create</button>
+                    <button id="create-server-cancel" class="cancel-btn">Cancel</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const nameInput = overlay.querySelector('#server-name-input');
+        const codeInput = overlay.querySelector('#server-code-input');
+        const publicToggle = overlay.querySelector('#public-toggle');
+        const submitBtn = overlay.querySelector('#create-server-submit');
+        const cancelBtn = overlay.querySelector('#create-server-cancel');
+
+        cancelBtn.addEventListener('click', () => overlay.remove());
+        submitBtn.addEventListener('click', async () => {
+            const name = nameInput.value.trim();
+            if (!name) return alert('Name required');
+            let code = codeInput.value.trim().toUpperCase();
+            if (!code) code = generateServerCode();
+            const snap = await get(query(serversRef, orderByChild('code'), equalTo(code)));
+            if (snap.exists()) return alert('Server code already taken.');
+            const serverData = {
+                name,
+                code,
+                public: publicToggle.checked,
+                createdBy: currentUser,
+                createdAt: Date.now()
+            };
+            const newServerRef = push(serversRef);
+            await set(newServerRef, serverData);
+            const serverId = newServerRef.key;
+            await joinServerById(serverId, serverData);
+            overlay.remove();
+            switchServer(serverId);
+        });
+    });
+
+    joinServerBtn.addEventListener('click', async () => {
+        const code = await showPasswordModal('Join Server', 'Enter server code:');
+        if (!code) return;
+        const snap = await get(query(serversRef, orderByChild('code'), equalTo(code.toUpperCase())));
+        if (!snap.exists()) return alert('Server not found.');
+        let serverId, serverData;
+        snap.forEach(c => { serverId = c.key; serverData = c.val(); });
+        if (!serverData.public && code.toUpperCase() !== serverData.code) return alert('Invalid code.');
+        await joinServerById(serverId, serverData);
+        switchServer(serverId);
+    });
+
+    // GIF modal
     function openGifModal() {
         const existing = document.querySelector('.gif-modal-overlay');
         if (existing) existing.remove();
@@ -1727,7 +1908,8 @@
     async function sendGif(url) {
         if (isChatPaused && userRole !== 'admin' && !hasPermission('pauseChat')) return alert('Chat paused');
         if (blockedNames.has(currentUser) && userRole !== 'admin') return alert('You are blocked');
-        await push(messagesRef, {
+        const targetRef = currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef;
+        await push(targetRef, {
             username: currentUser,
             text: '',
             type: 'gif',
@@ -1736,7 +1918,7 @@
         });
     }
 
-    // Attachment handling (unchanged)
+    // Attachment handling
     attachBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -1784,17 +1966,13 @@
         attachmentPreviewArea.appendChild(removeBtn);
     }
 
-    // Send message (unchanged)
+    // Send message (adapted for servers)
     sendBtn.onclick = async () => {
         if (!messageInput.value.trim() && !pendingAttachment) return;
         if (isChatPaused && userRole !== 'admin' && !hasPermission('pauseChat')) return alert('Chat paused');
         if (blockedNames.has(currentUser) && userRole !== 'admin') return alert('You are blocked');
 
-        let messageData = {
-            username: currentUser,
-            time: Date.now()
-        };
-
+        let messageData = { username: currentUser, time: Date.now() };
         if (pendingAttachment) {
             messageData.type = pendingAttachment.type;
             messageData.url = pendingAttachment.dataURL;
@@ -1807,8 +1985,8 @@
             messageData.type = 'text';
             messageData.text = text;
         }
-
-        await push(messagesRef, messageData);
+        const targetRef = currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef;
+        await push(targetRef, messageData);
         messageInput.value = '';
         set(ref(db, `typing/${currentUser}`), null);
     };
@@ -1820,26 +1998,16 @@
     starToggle.onclick = () => { if (userRole === 'admin') { isAdminMode = !isAdminMode; starToggle.classList.toggle('star-active'); } };
     gifBtn.addEventListener('click', openGifModal);
 
-    // Real-time listeners (unchanged)
-    function listenToMessages() {
-        onChildAdded(messagesRef, async (snap) => {
-            await loadProfiles();
-            renderMessage(snap.key, snap.val());
-        });
-        onChildRemoved(messagesRef, (snap) => {
-            const el = messageElements.get(snap.key);
-            if (el) el.remove();
-            messageElements.delete(snap.key);
-        });
-    }
-
+    // Real‑time listeners for the current context (set up in switchServer)
     function listenToProfiles() {
         onValue(usersRef, (snap) => {
             userProfiles.clear();
             if (snap.exists()) snap.forEach(child => userProfiles.set(child.key, child.val()));
+            // Re‑render messages and online list
             messagesDiv.innerHTML = '';
             messageElements.clear();
-            get(messagesRef).then(msgsSnap => msgsSnap.forEach(c => renderMessage(c.key, c.val())));
+            const targetRef = currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef;
+            get(targetRef).then(msgsSnap => msgsSnap.forEach(c => renderMessage(c.key, c.val())));
             updateOnlineList();
         });
     }
@@ -1850,19 +2018,19 @@
             if (snap.exists()) snap.forEach(child => moderatorUsernames.add(child.key));
             messagesDiv.innerHTML = '';
             messageElements.clear();
-            get(messagesRef).then(msgsSnap => msgsSnap.forEach(c => renderMessage(c.key, c.val())));
+            const targetRef = currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef;
+            get(targetRef).then(msgsSnap => msgsSnap.forEach(c => renderMessage(c.key, c.val())));
             updateOnlineList();
         });
     }
 
-    // Login with custom password modals
+    // Login
     document.getElementById('login-btn').onclick = async () => {
         const name = document.getElementById('login-name').value.trim();
         if (!name) { document.getElementById('error-msg').innerText = 'Enter a name!'; return; }
 
         const modSnap = await get(ref(db, `moderators/${name}`));
         if (modSnap.exists()) {
-            // Moderator login
             const password = await showPasswordModal('Moderator Login', `Enter password for @${name}:`);
             if (!password || password !== modSnap.val().password) {
                 document.getElementById('error-msg').innerText = 'Invalid moderator password.';
@@ -1874,7 +2042,6 @@
             currentUserProfile = getProfile(name) || { name: currentUser, avatarColor: '#00e5ff', avatarUrl: null };
             await saveProfile(currentUser, currentUserProfile);
         } else if (name === 'Johan06') {
-            // Admin login
             const code = await showPasswordModal('Admin Login', 'Enter the master code:');
             if (code !== 'PurpleMania') { document.getElementById('error-msg').innerText = 'Invalid admin code.'; return; }
             currentUser = name;
@@ -1882,7 +2049,6 @@
             currentUserProfile = { name: currentUser, avatarColor: '#ffd700', avatarUrl: null };
             await saveProfile(currentUser, currentUserProfile);
         } else {
-            // Normal user
             const snap = await get(messagesRef);
             let taken = false;
             snap.forEach(c => { if (c.val().username === name) taken = true; });
@@ -1919,10 +2085,23 @@
         moderatorUsernames.clear();
         if (initModSnap.exists()) initModSnap.forEach(child => moderatorUsernames.add(child.key));
 
-        listenToMessages();
+        // Load joined servers
+        const memberSnap = await get(serverMembersRef);
+        if (memberSnap.exists()) {
+            for (const [serverId, members] of Object.entries(memberSnap.val())) {
+                if (members[currentUser]) {
+                    const serverDataSnap = await get(ref(db, `servers/${serverId}`));
+                    if (serverDataSnap.exists()) {
+                        joinedServers.set(serverId, serverDataSnap.val());
+                    }
+                }
+            }
+        }
+        renderServerList();
+        switchServer(null); // start in global
+
         listenToProfiles();
         listenToModerators();
-
         initPresence();
         buildAdminDrawer();
 
