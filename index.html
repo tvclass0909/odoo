@@ -12,7 +12,6 @@
             font-family: 'Segoe UI', 'Inter', 'Poppins', system-ui, sans-serif;
         }
 
-        /* NEON COLOR PALETTE */
         :root {
             --bg-dark: #0a0a0f;
             --bg-darker: #050508;
@@ -65,7 +64,6 @@
             100% { transform: translateY(-50px); }
         }
 
-        /* LOGIN OVERLAY */
         #login-screen {
             position: fixed;
             inset: 0;
@@ -152,14 +150,12 @@
             font-size: 13px;
         }
 
-        /* Main Layout */
         #chat-app {
             display: flex;
             width: 100%;
             animation: fadeIn 0.6s ease;
         }
 
-        /* SIDEBAR */
         .sidebar {
             width: 300px;
             background: linear-gradient(180deg, var(--bg-sidebar), var(--bg-darker));
@@ -186,13 +182,8 @@
             text-align: center;
         }
 
-        .logo:hover {
-            transform: scale(1.05);
-        }
-
-        .logo.exploding {
-            animation: explode 0.5s ease forwards;
-        }
+        .logo:hover { transform: scale(1.05); }
+        .logo.exploding { animation: explode 0.5s ease forwards; }
 
         @keyframes explode {
             0% { transform: scale(1); opacity: 1; }
@@ -232,7 +223,6 @@
             50% { opacity: 0.9; text-shadow: 0 0 30px var(--gold); }
         }
 
-        /* Thunderbolt animation */
         .thunderbolt {
             position: fixed;
             background: linear-gradient(135deg, var(--neon-yellow), var(--gold), white);
@@ -252,7 +242,6 @@
             100% { transform: translateX(calc(100vw + 200px)) translateY(calc(100vh + 200px)) scale(0.5); opacity: 0; }
         }
 
-        /* Explosion particles */
         .explosion-particle {
             position: fixed;
             width: 8px;
@@ -269,7 +258,6 @@
             100% { transform: scale(0) translate(var(--px, 0), var(--py, 0)); opacity: 0; }
         }
 
-        /* Screen shake */
         .screen-shake {
             animation: shake 0.3s ease-in-out;
         }
@@ -353,7 +341,15 @@
             font-weight: bold;
         }
 
-        /* Chat styles (unchanged from previous working version) */
+        .mod-badge {
+            font-size: 10px;
+            background: linear-gradient(135deg, var(--cyan), var(--blue));
+            color: black;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
         .chat-container {
             flex: 1;
             display: flex;
@@ -460,6 +456,11 @@
         .admin-glow {
             box-shadow: 0 0 15px var(--gold), 0 0 5px var(--neon-yellow);
             border: 2px solid var(--gold);
+        }
+
+        .mod-glow {
+            box-shadow: 0 0 15px var(--cyan), 0 0 5px var(--blue);
+            border: 2px solid var(--cyan);
         }
 
         .message-text-container {
@@ -625,6 +626,7 @@
             cursor: pointer;
             margin: 4px;
             transition: 0.2s;
+            font-size: 0.9rem;
         }
 
         .admin-btn:hover {
@@ -683,7 +685,7 @@
             box-shadow: 0 0 15px var(--glow-green);
         }
 
-        .emoji-btn {
+        .emoji-btn, .attach-btn, .gif-btn {
             background: rgba(255,255,255,0.05);
             border: 1px solid var(--neon-purple);
             width: 50px;
@@ -691,9 +693,12 @@
             cursor: pointer;
             font-size: 24px;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .emoji-btn:hover {
+        .emoji-btn:hover, .attach-btn:hover, .gif-btn:hover {
             background: var(--neon-purple);
             transform: scale(1.05);
         }
@@ -877,6 +882,173 @@
             animation: fadeInUp 0.2s ease;
         }
 
+        .permission-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 6px 0;
+        }
+        .permission-toggle label {
+            font-size: 0.85rem;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 20px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--neon-purple);
+            box-shadow: 0 0 8px var(--glow-purple);
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .attachment-preview {
+            padding: 8px 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0,0,0,0.4);
+            border-top: 1px solid rgba(155,48,255,0.3);
+            flex-wrap: wrap;
+        }
+        .attachment-preview img, .attachment-preview video {
+            max-height: 80px;
+            border-radius: 12px;
+            border: 1px solid var(--neon-purple);
+        }
+        .attachment-preview .remove-preview {
+            background: var(--neon-red);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .message-media {
+            max-width: 100%;
+            height: auto;
+            border-radius: 16px;
+            margin-top: 4px;
+            border: 1px solid rgba(155,48,255,0.5);
+        }
+
+        /* GIF Modal */
+        .gif-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 5, 8, 0.9);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .gif-modal {
+            background: var(--bg-card);
+            border-radius: 28px;
+            padding: 24px;
+            width: 500px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--neon-purple);
+            box-shadow: 0 0 40px var(--glow-purple);
+            animation: slideUp 0.3s ease;
+        }
+
+        .gif-modal h3 {
+            color: var(--cyan);
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+        }
+
+        .gif-search {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .gif-search input {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 40px;
+            border: 1px solid var(--dark-grey);
+            background: var(--bg-darker);
+            color: white;
+        }
+
+        .gif-search button {
+            background: var(--neon-purple);
+            border: none;
+            color: white;
+            border-radius: 40px;
+            padding: 0 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .gif-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .gif-item {
+            cursor: pointer;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+
+        .gif-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .gif-item:hover {
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 15px var(--glow-purple);
+            transform: scale(1.02);
+        }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-darker); }
         ::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 10px; }
@@ -911,40 +1083,25 @@
             <span style="color: var(--cyan);">💬 GLOBAL NEXUS</span>
             <div class="admin-actions-top">
                 <button id="star-admin-toggle" class="top-icon-btn" style="display: none;">⭐</button>
-                <button id="admin-panel-toggle" class="top-icon-btn">»</button>
+                <button id="admin-panel-toggle" class="top-icon-btn" style="display: none;">⚙️</button>
+                <button id="mod-panel-toggle" class="top-icon-btn" style="display: none;">🛡️</button>
             </div>
         </div>
         <div id="messages"></div>
         <div id="typing-area" style="padding: 0 28px;"></div>
+        <div id="attachment-preview-area" class="attachment-preview" style="display: none;"></div>
         <div class="input-area">
             <button id="emoji-btn" class="emoji-btn">😊</button>
+            <button id="attach-btn" class="attach-btn">📎</button>
+            <button id="gif-btn" class="gif-btn">🎞️</button>
             <input type="text" id="message-input" placeholder="Type your message...">
             <button id="send-btn">⚡ SEND</button>
         </div>
+        <input type="file" id="file-input" accept="image/*,video/*" style="display: none;">
     </div>
 
     <div id="admin-drawer" class="admin-drawer">
-        <div class="admin-section"><h4>🛡️ MODERATION</h4>
-            <button id="clear-all-msgs" class="admin-btn danger">🗑️ CLEAR CHAT</button>
-            <input type="text" id="target-username" placeholder="Username" class="admin-input">
-            <button id="delete-user-msgs" class="admin-btn">❌ DELETE USER MSGS</button>
-            <button id="pause-chat-btn" class="admin-btn">⏸️ PAUSE CHAT</button>
-        </div>
-        <div class="admin-section"><h4>🚫 BLOCKED NAMES</h4>
-            <input type="text" id="block-name-input" placeholder="Name" class="admin-input">
-            <button id="add-blocked-name" class="admin-btn">+ BLOCK</button>
-            <div id="blocked-names-list"></div>
-        </div>
-        <div class="admin-section"><h4>🔇 BLOCKED WORDS</h4>
-            <input type="text" id="block-word-input" placeholder="Word" class="admin-input">
-            <button id="add-blocked-word" class="admin-btn">+ BLOCK</button>
-            <div id="blocked-words-list"></div>
-        </div>
-        <div class="admin-section"><h4>✏️ RENAME USER</h4>
-            <input type="text" id="old-username" placeholder="Current" class="admin-input">
-            <input type="text" id="new-username" placeholder="New" class="admin-input">
-            <button id="rename-user-btn" class="admin-btn">RENAME</button>
-        </div>
+        <!-- Dynamically built by buildAdminDrawer() -->
     </div>
 </div>
 
@@ -968,9 +1125,17 @@
     const messagesRef = ref(db, 'messages');
     const usersRef = ref(db, 'userProfiles');
     const typingRef = ref(db, 'typing');
+    const moderatorsRef = ref(db, 'moderators');
+    const adminConfigRef = ref(db, 'adminConfig');
+
+    // Tenor API (public test key – get your own for production)
+    const TENOR_API_KEY = "LIVDSRZULELA";
+    const TENOR_SEARCH_URL = "https://g.tenor.com/v1/search";
 
     let currentUser = "";
     let currentUserProfile = { name: "", avatarColor: "#9b30ff", avatarUrl: null };
+    let userRole = 'user';
+    let modPermissions = {};
     let isAdminMode = false;
     let isChatPaused = false;
     let blockedNames = new Set();
@@ -982,7 +1147,10 @@
     let deleteTimeout = null;
     let typingTimeout = null;
     let logoClickCount = 0;
+    let moderatorUsernames = new Set();
+    let pendingAttachment = null;
 
+    // DOM elements
     const loginScreen = document.getElementById('login-screen');
     const chatApp = document.getElementById('chat-app');
     const messagesDiv = document.getElementById('messages');
@@ -991,20 +1159,39 @@
     const statusSpan = document.getElementById('status');
     const starToggle = document.getElementById('star-admin-toggle');
     const adminPanelToggle = document.getElementById('admin-panel-toggle');
+    const modPanelToggle = document.getElementById('mod-panel-toggle');
     const adminDrawer = document.getElementById('admin-drawer');
     const accountBtn = document.getElementById('account-settings-btn');
     const onlineListDiv = document.getElementById('online-list');
     const typingArea = document.getElementById('typing-area');
     const emojiBtn = document.getElementById('emoji-btn');
+    const attachBtn = document.getElementById('attach-btn');
+    const gifBtn = document.getElementById('gif-btn');
+    const fileInput = document.getElementById('file-input');
+    const attachmentPreviewArea = document.getElementById('attachment-preview-area');
     const logoElement = document.getElementById('nova-logo');
 
-    // Explosion and thunder effect function
+    // Helper functions
+    function escapeHtml(s) { return s?.replace(/[&<>]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m])) || ''; }
+    function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+    async function loadProfiles() {
+        const snap = await get(usersRef);
+        if (snap.exists()) snap.forEach(c => userProfiles.set(c.key, c.val()));
+    }
+    async function saveProfile(username, profile) {
+        await set(ref(db, `userProfiles/${username}`), profile);
+        userProfiles.set(username, profile);
+    }
+    function getProfile(username) {
+        return userProfiles.get(username) || { name: username, avatarColor: "#9b30ff", avatarUrl: null };
+    }
+    async function deleteMessage(key) { await remove(ref(db, `messages/${key}`)); }
+
+    // Explosion and thunder effects (unchanged)
     function triggerExplosionAndThunder() {
-        // Screen shake
         document.body.classList.add('screen-shake');
         setTimeout(() => document.body.classList.remove('screen-shake'), 300);
-        
-        // Create explosion particles
         for (let i = 0; i < 50; i++) {
             const particle = document.createElement('div');
             particle.className = 'explosion-particle';
@@ -1019,8 +1206,6 @@
             document.body.appendChild(particle);
             setTimeout(() => particle.remove(), 800);
         }
-        
-        // Create thunderbolts across screen
         for (let i = 0; i < 12; i++) {
             setTimeout(() => {
                 const thunder = document.createElement('div');
@@ -1037,8 +1222,6 @@
                 setTimeout(() => thunder.remove(), 3000);
             }, i * 100);
         }
-        
-        // Add sparkles around the new username
         const replacedElement = document.querySelector('.logo-replaced');
         if (replacedElement) {
             for (let i = 0; i < 30; i++) {
@@ -1062,7 +1245,6 @@
         }
     }
 
-    // Logo click handler - 16 clicks to explode
     logoElement.addEventListener('click', () => {
         if (!currentUser) return;
         logoClickCount++;
@@ -1074,32 +1256,12 @@
                 newElement.className = 'logo-replaced';
                 newElement.innerText = currentUser.toUpperCase();
                 logoElement.parentElement.insertBefore(newElement, logoElement.nextSibling);
-                // Trigger explosion effects
                 triggerExplosionAndThunder();
             }, 500);
         }
     });
 
     const emojis = ['😀', '😂', '😍', '🥰', '😎', '😭', '🤔', '😡', '👍', '❤️', '🔥', '✨', '⭐', '💀', '🎉', '🥳', '😴', '😈', '👑', '💀', '🪄', '🌈', '⚡', '💎'];
-
-    function escapeHtml(s) { return s?.replace(/[&<>]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m])) || ''; }
-    function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-
-    async function loadProfiles() {
-        const snap = await get(usersRef);
-        if (snap.exists()) snap.forEach(c => userProfiles.set(c.key, c.val()));
-    }
-
-    async function saveProfile(username, profile) {
-        await set(ref(db, `userProfiles/${username}`), profile);
-        userProfiles.set(username, profile);
-    }
-
-    function getProfile(username) {
-        return userProfiles.get(username) || { name: username, avatarColor: "#9b30ff", avatarUrl: null };
-    }
-
-    async function deleteMessage(key) { await remove(ref(db, `messages/${key}`)); }
 
     // Emoji Picker
     let emojiPicker = null;
@@ -1140,7 +1302,6 @@
         if (typingTimeout) clearTimeout(typingTimeout);
         typingTimeout = setTimeout(() => set(ref(db, `typing/${currentUser}`), null), 1500);
     });
-
     onValue(typingRef, (snap) => {
         if (!snap.exists()) { typingArea.innerHTML = ''; return; }
         let typingUsers = [];
@@ -1191,12 +1352,14 @@
                 picDiv.innerText = name.charAt(0).toUpperCase();
             }
             if (name === 'Johan06') picDiv.style.boxShadow = '0 0 12px gold';
+            else if (moderatorUsernames.has(name)) picDiv.style.boxShadow = '0 0 12px var(--cyan)';
             div.appendChild(picDiv);
             const nameSpan = document.createElement('span');
             nameSpan.className = 'online-name';
             nameSpan.innerText = name;
             div.appendChild(nameSpan);
             if (name === 'Johan06') { const badge = document.createElement('span'); badge.className = 'admin-badge'; badge.innerText = 'ADMIN'; div.appendChild(badge); }
+            else if (moderatorUsernames.has(name)) { const badge = document.createElement('span'); badge.className = 'mod-badge'; badge.innerText = 'MOD'; div.appendChild(badge); }
             onlineListDiv.appendChild(div);
         }
     }
@@ -1215,6 +1378,7 @@
         const isCreator = username === 'Johan06';
         let extraHtml = '';
         if (isCreator) extraHtml = `<div style="color:gold; font-weight:bold; margin-top:5px;">⚡ OWNER / ADMIN / DEV ⚡</div><div style="color:#ffa500; font-size:12px;">Johan06: The Creator</div>`;
+        else if (moderatorUsernames.has(username)) extraHtml = `<div style="color:var(--cyan); font-weight:bold; margin-top:5px;">🛡️ MODERATOR</div>`;
         const imgHtml = profile.avatarUrl ? `<div style="width:60px;height:60px;border-radius:50%;background-image:url(${profile.avatarUrl});background-size:cover;margin:0 auto;"></div>` : `<div style="width:60px;height:60px;border-radius:50%;background:${profile.avatarColor};display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto;">${username.charAt(0)}</div>`;
         popup.innerHTML = `${imgHtml}<div style="margin-top:8px;"><strong>${escapeHtml(username)}</strong></div>${extraHtml}`;
         const rect = target.getBoundingClientRect();
@@ -1237,6 +1401,7 @@
         const pic = document.createElement('div');
         pic.className = 'profile-pic';
         if (msg.username === 'Johan06') pic.classList.add('admin-glow');
+        else if (moderatorUsernames.has(msg.username)) pic.classList.add('mod-glow');
         if (profile.avatarUrl) {
             pic.style.backgroundImage = `url(${profile.avatarUrl})`;
             pic.style.backgroundSize = 'cover';
@@ -1265,7 +1430,24 @@
         
         const bubble = document.createElement('div');
         bubble.className = 'bubble';
-        bubble.innerText = msg.text;
+        
+        if (msg.type === 'image' || msg.type === 'gif') {
+            const img = document.createElement('img');
+            img.src = msg.url || msg.text;
+            img.className = 'message-media';
+            bubble.appendChild(img);
+        } else if (msg.type === 'video') {
+            const video = document.createElement('video');
+            video.src = msg.url || msg.text;
+            video.className = 'message-media';
+            video.controls = true;
+            video.muted = true;
+            video.loop = true;
+            video.autoplay = true;
+            bubble.appendChild(video);
+        } else {
+            bubble.innerText = msg.text;
+        }
         
         if (msg.username === currentUser && !isAdminMode) {
             bubble.style.cursor = 'pointer';
@@ -1304,7 +1486,7 @@
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
-    // Account Modal (same as before, shortened for brevity - kept functional)
+    // Account Modal
     function openAccountModal() {
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
@@ -1333,9 +1515,9 @@
         rgbBtn.onclick = () => rgbDiv.style.display = rgbDiv.style.display === 'none' ? 'block' : 'none';
         colorWheel.oninput = (e) => { selectedColor = e.target.value; if (!uploadedImage) { preview.style.background = selectedColor; preview.innerText = currentUser === 'Johan06' ? 'J' : currentUser.charAt(0); preview.style.backgroundImage = 'none'; } };
         const uploadBtn = modal.querySelector('#uploadBtn');
-        const fileInput = modal.querySelector('#fileInput');
-        uploadBtn.onclick = () => fileInput.click();
-        fileInput.onchange = (e) => {
+        const fileInputModal = modal.querySelector('#fileInput');
+        uploadBtn.onclick = () => fileInputModal.click();
+        fileInputModal.onchange = (e) => {
             const file = e.target.files[0];
             if (file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
@@ -1347,6 +1529,8 @@
             const newName = modal.querySelector('#newName').value.trim();
             if (newName && newName !== currentUser) {
                 if (newName === 'Johan06') { const code = prompt('Enter admin code:'); if (code !== 'PurpleMania') { alert('Invalid code!'); modal.remove(); return; } }
+                const modSnap = await get(moderatorsRef);
+                if (modSnap.exists() && modSnap.hasChild(newName)) { alert('Name is reserved for a moderator.'); modal.remove(); return; }
                 const snap = await get(messagesRef);
                 let taken = false;
                 snap.forEach(c => { if (c.val().username === newName && c.val().username !== currentUser) taken = true; });
@@ -1365,99 +1549,522 @@
             await saveProfile(currentUser, newProfile);
             currentUserProfile = newProfile;
             modal.remove();
-            messagesDiv.innerHTML = '';
-            messageElements.clear();
-            const snap = await get(messagesRef);
-            snap.forEach(c => renderMessage(c.key, c.val()));
         };
         modal.querySelector('#closeBtn').onclick = () => modal.remove();
         document.body.appendChild(modal);
     }
 
-    // Admin actions
-    document.getElementById('clear-all-msgs')?.addEventListener('click', async () => { if (currentUser === 'Johan06' && confirm('Clear all?')) await remove(messagesRef); });
-    document.getElementById('delete-user-msgs')?.addEventListener('click', async () => {
-        if (currentUser !== 'Johan06') return;
-        const user = document.getElementById('target-username')?.value.trim();
-        if (!user) return;
-        const snap = await get(messagesRef);
-        const updates = {};
-        snap.forEach(c => { if (c.val().username === user) updates[c.key] = null; });
-        await update(ref(db), { messages: updates });
-        alert(`Deleted ${user}'s messages`);
-    });
-    document.getElementById('pause-chat-btn')?.addEventListener('click', () => { if (currentUser === 'Johan06') { isChatPaused = !isChatPaused; set(ref(db, 'adminConfig/chatPaused'), isChatPaused); document.getElementById('pause-chat-btn').innerText = isChatPaused ? '▶️ RESUME' : '⏸️ PAUSE'; } });
-    document.getElementById('add-blocked-name')?.addEventListener('click', () => { let n = document.getElementById('block-name-input')?.value.trim(); if (n && n !== 'Johan06') { blockedNames.add(n); set(ref(db, 'adminConfig/blockedNames'), Array.from(blockedNames)); renderBlocked(); } });
-    document.getElementById('add-blocked-word')?.addEventListener('click', () => { let w = document.getElementById('block-word-input')?.value.trim().toLowerCase(); if (w) { blockedWords.add(w); set(ref(db, 'adminConfig/blockedWords'), Array.from(blockedWords)); renderBlocked(); } });
-    document.getElementById('rename-user-btn')?.addEventListener('click', async () => {
-        if (currentUser !== 'Johan06') return;
-        const oldN = document.getElementById('old-username')?.value.trim();
-        const newN = document.getElementById('new-username')?.value.trim();
-        if (!oldN || !newN) return;
-        const snap = await get(messagesRef);
-        const updates = {};
-        snap.forEach(c => { if (c.val().username === oldN) updates[c.key] = { ...c.val(), username: newN }; });
-        for (let key in updates) await set(ref(db, `messages/${key}`), updates[key]);
-        const prof = getProfile(oldN);
-        await saveProfile(newN, prof);
-        await remove(ref(db, `userProfiles/${oldN}`));
-        alert(`Renamed ${oldN} to ${newN}`);
-    });
+    function hasPermission(perm) {
+        if (userRole === 'admin') return true;
+        return userRole === 'moderator' && modPermissions[perm] === true;
+    }
+
+    function buildAdminDrawer() {
+        adminDrawer.innerHTML = '';
+        function addSection(title, id, contentHtml, condition = true) {
+            if (!condition) return;
+            const section = document.createElement('div');
+            section.className = 'admin-section';
+            section.innerHTML = `<h4>${title}</h4>${contentHtml}`;
+            adminDrawer.appendChild(section);
+        }
+
+        if (userRole === 'admin') {
+            addSection('🛡️ MODERATORS', 'mod-section', `
+                <div id="moderators-list"></div>
+                <hr style="border-color: rgba(155,48,255,0.3); margin: 12px 0;">
+                <input type="text" id="new-mod-username" placeholder="Moderator username" class="admin-input">
+                <input type="text" id="new-mod-password" placeholder="Password" class="admin-input">
+                <div class="permission-toggle"><label>Clear Chat</label><label class="toggle-switch"><input type="checkbox" id="perm-clearChat" checked><span class="slider"></span></label></div>
+                <div class="permission-toggle"><label>Block Names</label><label class="toggle-switch"><input type="checkbox" id="perm-blockNames" checked><span class="slider"></span></label></div>
+                <div class="permission-toggle"><label>Block Words</label><label class="toggle-switch"><input type="checkbox" id="perm-blockWords" checked><span class="slider"></span></label></div>
+                <div class="permission-toggle"><label>Delete User Msgs</label><label class="toggle-switch"><input type="checkbox" id="perm-deleteUserMsgs" checked><span class="slider"></span></label></div>
+                <div class="permission-toggle"><label>Pause Chat</label><label class="toggle-switch"><input type="checkbox" id="perm-pauseChat" checked><span class="slider"></span></label></div>
+                <div class="permission-toggle"><label>Rename User</label><label class="toggle-switch"><input type="checkbox" id="perm-renameUser" checked><span class="slider"></span></label></div>
+                <button id="create-mod-btn" class="admin-btn">➕ CREATE MODERATOR</button>
+            `);
+        }
+
+        addSection('🛡️ MODERATION', 'mod-actions', `
+            <button id="clear-all-msgs" class="admin-btn danger">🗑️ CLEAR CHAT</button>
+            <input type="text" id="target-username" placeholder="Username" class="admin-input">
+            <button id="delete-user-msgs" class="admin-btn">❌ DELETE USER MSGS</button>
+            <button id="pause-chat-btn" class="admin-btn">⏸️ PAUSE CHAT</button>
+        `, hasPermission('clearChat') || hasPermission('deleteUserMsgs') || hasPermission('pauseChat'));
+
+        addSection('🚫 BLOCKED NAMES', 'block-names', `
+            <input type="text" id="block-name-input" placeholder="Name" class="admin-input">
+            <button id="add-blocked-name" class="admin-btn">+ BLOCK</button>
+            <div id="blocked-names-list"></div>
+        `, hasPermission('blockNames'));
+
+        addSection('🔇 BLOCKED WORDS', 'block-words', `
+            <input type="text" id="block-word-input" placeholder="Word" class="admin-input">
+            <button id="add-blocked-word" class="admin-btn">+ BLOCK</button>
+            <div id="blocked-words-list"></div>
+        `, hasPermission('blockWords'));
+
+        addSection('✏️ RENAME USER', 'rename-user', `
+            <input type="text" id="old-username" placeholder="Current" class="admin-input">
+            <input type="text" id="new-username" placeholder="New" class="admin-input">
+            <button id="rename-user-btn" class="admin-btn">RENAME</button>
+        `, hasPermission('renameUser'));
+
+        attachAdminEventListeners();
+        renderBlocked();
+        if (userRole === 'admin') loadModeratorsList();
+    }
+
+    function attachAdminEventListeners() {
+        const clearBtn = document.getElementById('clear-all-msgs');
+        if (clearBtn && hasPermission('clearChat')) clearBtn.addEventListener('click', async () => {
+            if (confirm('Clear all messages?')) await remove(messagesRef);
+        });
+
+        const delUserBtn = document.getElementById('delete-user-msgs');
+        if (delUserBtn && hasPermission('deleteUserMsgs')) delUserBtn.addEventListener('click', async () => {
+            const user = document.getElementById('target-username')?.value.trim();
+            if (!user) return;
+            const snap = await get(messagesRef);
+            const deletions = [];
+            snap.forEach(c => {
+                if (c.val().username === user) deletions.push(remove(ref(db, `messages/${c.key}`)));
+            });
+            await Promise.all(deletions);
+            alert(`Deleted ${user}'s messages`);
+        });
+
+        const pauseBtn = document.getElementById('pause-chat-btn');
+        if (pauseBtn && hasPermission('pauseChat')) pauseBtn.addEventListener('click', () => {
+            isChatPaused = !isChatPaused;
+            set(ref(db, 'adminConfig/chatPaused'), isChatPaused);
+            pauseBtn.innerText = isChatPaused ? '▶️ RESUME' : '⏸️ PAUSE';
+        });
+
+        const addNameBtn = document.getElementById('add-blocked-name');
+        if (addNameBtn && hasPermission('blockNames')) addNameBtn.addEventListener('click', () => {
+            let n = document.getElementById('block-name-input')?.value.trim();
+            if (n && n !== 'Johan06') {
+                blockedNames.add(n);
+                set(ref(db, 'adminConfig/blockedNames'), Array.from(blockedNames));
+                renderBlocked();
+            }
+        });
+
+        const addWordBtn = document.getElementById('add-blocked-word');
+        if (addWordBtn && hasPermission('blockWords')) addWordBtn.addEventListener('click', () => {
+            let w = document.getElementById('block-word-input')?.value.trim().toLowerCase();
+            if (w) {
+                blockedWords.add(w);
+                set(ref(db, 'adminConfig/blockedWords'), Array.from(blockedWords));
+                renderBlocked();
+            }
+        });
+
+        const renameBtn = document.getElementById('rename-user-btn');
+        if (renameBtn && hasPermission('renameUser')) renameBtn.addEventListener('click', async () => {
+            const oldN = document.getElementById('old-username')?.value.trim();
+            const newN = document.getElementById('new-username')?.value.trim();
+            if (!oldN || !newN) return;
+            const snap = await get(messagesRef);
+            const updates = {};
+            snap.forEach(c => { if (c.val().username === oldN) updates[c.key] = { ...c.val(), username: newN }; });
+            for (let key in updates) await set(ref(db, `messages/${key}`), updates[key]);
+            const prof = getProfile(oldN);
+            await saveProfile(newN, prof);
+            await remove(ref(db, `userProfiles/${oldN}`));
+            alert(`Renamed ${oldN} to ${newN}`);
+        });
+
+        const createModBtn = document.getElementById('create-mod-btn');
+        if (createModBtn) createModBtn.addEventListener('click', async () => {
+            const username = document.getElementById('new-mod-username')?.value.trim();
+            const password = document.getElementById('new-mod-password')?.value.trim();
+            if (!username || !password) return alert('Fill in both fields');
+            if (username === 'Johan06') return alert('Cannot create a moderator with that name');
+            const perms = {
+                clearChat: document.getElementById('perm-clearChat')?.checked || false,
+                blockNames: document.getElementById('perm-blockNames')?.checked || false,
+                blockWords: document.getElementById('perm-blockWords')?.checked || false,
+                deleteUserMsgs: document.getElementById('perm-deleteUserMsgs')?.checked || false,
+                pauseChat: document.getElementById('perm-pauseChat')?.checked || false,
+                renameUser: document.getElementById('perm-renameUser')?.checked || false
+            };
+            await set(ref(db, `moderators/${username}`), { password, permissions: perms });
+            document.getElementById('new-mod-username').value = '';
+            document.getElementById('new-mod-password').value = '';
+            loadModeratorsList();
+        });
+    }
+
+    async function loadModeratorsList() {
+        const listDiv = document.getElementById('moderators-list');
+        if (!listDiv) return;
+        const snap = await get(moderatorsRef);
+        listDiv.innerHTML = '';
+        if (snap.exists()) {
+            snap.forEach(child => {
+                const mod = child.val();
+                const username = child.key;
+                const container = document.createElement('div');
+                container.style.background = 'rgba(0,0,0,0.3)';
+                container.style.borderRadius = '12px';
+                container.style.padding = '10px';
+                container.style.marginBottom = '8px';
+                const header = document.createElement('div');
+                header.style.display = 'flex';
+                header.style.justifyContent = 'space-between';
+                header.style.marginBottom = '6px';
+                header.innerHTML = `<strong>${escapeHtml(username)}</strong> <button class="delete-mod-btn admin-btn danger" data-user="${escapeHtml(username)}">🗑️</button>`;
+                container.appendChild(header);
+                const permsDiv = document.createElement('div');
+                permsDiv.style.display = 'flex';
+                permsDiv.style.flexWrap = 'wrap';
+                permsDiv.style.gap = '8px';
+                const permKeys = ['clearChat', 'blockNames', 'blockWords', 'deleteUserMsgs', 'pauseChat', 'renameUser'];
+                permKeys.forEach(p => {
+                    const label = document.createElement('label');
+                    label.className = 'permission-toggle';
+                    label.style.fontSize = '0.75rem';
+                    label.innerHTML = `${p} <input type="checkbox" class="mod-perm-check" data-user="${escapeHtml(username)}" data-perm="${p}" ${mod.permissions[p] ? 'checked' : ''}>`;
+                    permsDiv.appendChild(label);
+                });
+                container.appendChild(permsDiv);
+                listDiv.appendChild(container);
+                container.querySelector('.delete-mod-btn').addEventListener('click', async () => {
+                    if (confirm(`Delete moderator ${username}?`)) {
+                        await remove(ref(db, `moderators/${username}`));
+                        loadModeratorsList();
+                    }
+                });
+                container.querySelectorAll('.mod-perm-check').forEach(cb => {
+                    cb.addEventListener('change', async (e) => {
+                        const user = e.target.dataset.user;
+                        const perm = e.target.dataset.perm;
+                        const newVal = e.target.checked;
+                        const modSnap = await get(ref(db, `moderators/${user}`));
+                        if (modSnap.exists()) {
+                            const modData = modSnap.val();
+                            modData.permissions[perm] = newVal;
+                            await set(ref(db, `moderators/${user}`), modData);
+                        }
+                    });
+                });
+            });
+        } else {
+            listDiv.innerHTML = '<p style="font-size:12px; opacity:0.7;">No moderators yet.</p>';
+        }
+    }
+
     function renderBlocked() {
         const namesDiv = document.getElementById('blocked-names-list');
-        if (namesDiv) { namesDiv.innerHTML = ''; blockedNames.forEach(n => { const badge = document.createElement('div'); badge.className = 'word-badge'; badge.innerHTML = `${escapeHtml(n)} <button class="remove-word">✖</button>`; badge.querySelector('.remove-word').onclick = () => { blockedNames.delete(n); set(ref(db, 'adminConfig/blockedNames'), Array.from(blockedNames)); renderBlocked(); }; namesDiv.appendChild(badge); }); }
+        if (namesDiv) {
+            namesDiv.innerHTML = '';
+            blockedNames.forEach(n => {
+                const badge = document.createElement('div');
+                badge.className = 'word-badge';
+                badge.innerHTML = `${escapeHtml(n)} <button class="remove-word">✖</button>`;
+                badge.querySelector('.remove-word').onclick = () => {
+                    blockedNames.delete(n);
+                    set(ref(db, 'adminConfig/blockedNames'), Array.from(blockedNames));
+                    renderBlocked();
+                };
+                namesDiv.appendChild(badge);
+            });
+        }
         const wordsDiv = document.getElementById('blocked-words-list');
-        if (wordsDiv) { wordsDiv.innerHTML = ''; blockedWords.forEach(w => { const badge = document.createElement('div'); badge.className = 'word-badge'; badge.innerHTML = `${escapeHtml(w)} <button class="remove-word">✖</button>`; badge.querySelector('.remove-word').onclick = () => { blockedWords.delete(w); set(ref(db, 'adminConfig/blockedWords'), Array.from(blockedWords)); renderBlocked(); }; wordsDiv.appendChild(badge); }); }
+        if (wordsDiv) {
+            wordsDiv.innerHTML = '';
+            blockedWords.forEach(w => {
+                const badge = document.createElement('div');
+                badge.className = 'word-badge';
+                badge.innerHTML = `${escapeHtml(w)} <button class="remove-word">✖</button>`;
+                badge.querySelector('.remove-word').onclick = () => {
+                    blockedWords.delete(w);
+                    set(ref(db, 'adminConfig/blockedWords'), Array.from(blockedWords));
+                    renderBlocked();
+                };
+                wordsDiv.appendChild(badge);
+            });
+        }
+    }
+
+    // ---------- GIF MODAL ----------
+    function openGifModal() {
+        const existing = document.querySelector('.gif-modal-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'gif-modal-overlay';
+        overlay.innerHTML = `
+            <div class="gif-modal">
+                <h3>🔍 Search Tenor GIFs</h3>
+                <div class="gif-search">
+                    <input type="text" id="gif-search-input" placeholder="Search GIFs...">
+                    <button id="gif-search-btn">Search</button>
+                </div>
+                <div class="gif-grid" id="gif-grid"></div>
+                <button id="close-gif-modal" class="admin-btn" style="margin-top:12px;">Close</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const searchInput = overlay.querySelector('#gif-search-input');
+        const searchBtn = overlay.querySelector('#gif-search-btn');
+        const grid = overlay.querySelector('#gif-grid');
+        const closeBtn = overlay.querySelector('#close-gif-modal');
+
+        async function searchGifs(query) {
+            grid.innerHTML = '<p style="color:var(--cyan);">Loading...</p>';
+            try {
+                const res = await fetch(`${TENOR_SEARCH_URL}?q=${encodeURIComponent(query)}&key=${TENOR_API_KEY}&limit=20`);
+                const data = await res.json();
+                grid.innerHTML = '';
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(gif => {
+                        const img = document.createElement('img');
+                        img.src = gif.media[0].tinygif.url;
+                        img.alt = gif.title;
+                        const item = document.createElement('div');
+                        item.className = 'gif-item';
+                        item.appendChild(img);
+                        item.addEventListener('click', () => {
+                            sendGif(gif.media[0].gif.url);
+                            overlay.remove();
+                        });
+                        grid.appendChild(item);
+                    });
+                } else {
+                    grid.innerHTML = '<p>No GIFs found.</p>';
+                }
+            } catch (err) {
+                grid.innerHTML = '<p>Error loading GIFs.</p>';
+                console.error(err);
+            }
+        }
+
+        searchBtn.addEventListener('click', () => {
+            const query = searchInput.value.trim();
+            if (query) searchGifs(query);
+        });
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchBtn.click();
+        });
+
+        closeBtn.addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.remove();
+        });
+
+        // Initial trending
+        searchGifs('trending');
+    }
+
+    async function sendGif(url) {
+        if (isChatPaused && userRole !== 'admin' && !hasPermission('pauseChat')) return alert('Chat paused');
+        if (blockedNames.has(currentUser) && userRole !== 'admin') return alert('You are blocked');
+        await push(messagesRef, {
+            username: currentUser,
+            text: '',
+            type: 'gif',
+            url: url,
+            time: Date.now()
+        });
+    }
+
+    // Attachment handling
+    attachBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+            alert('Only images and videos are supported.');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            pendingAttachment = {
+                dataURL: ev.target.result,
+                type: file.type.startsWith('image/') ? 'image' : 'video'
+            };
+            showAttachmentPreview();
+        };
+        reader.readAsDataURL(file);
+        fileInput.value = '';
+    });
+
+    function showAttachmentPreview() {
+        if (!pendingAttachment) {
+            attachmentPreviewArea.style.display = 'none';
+            attachmentPreviewArea.innerHTML = '';
+            return;
+        }
+        attachmentPreviewArea.style.display = 'flex';
+        attachmentPreviewArea.innerHTML = '';
+        const previewEl = pendingAttachment.type === 'image' ? document.createElement('img') : document.createElement('video');
+        previewEl.src = pendingAttachment.dataURL;
+        if (pendingAttachment.type === 'video') {
+            previewEl.muted = true;
+            previewEl.loop = true;
+            previewEl.autoplay = true;
+            previewEl.controls = false;
+        }
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-preview';
+        removeBtn.innerText = '✖';
+        removeBtn.onclick = () => {
+            pendingAttachment = null;
+            showAttachmentPreview();
+        };
+        attachmentPreviewArea.appendChild(previewEl);
+        attachmentPreviewArea.appendChild(removeBtn);
+    }
+
+    // Send message
+    sendBtn.onclick = async () => {
+        if (!messageInput.value.trim() && !pendingAttachment) return;
+        if (isChatPaused && userRole !== 'admin' && !hasPermission('pauseChat')) return alert('Chat paused');
+        if (blockedNames.has(currentUser) && userRole !== 'admin') return alert('You are blocked');
+
+        let messageData = {
+            username: currentUser,
+            time: Date.now()
+        };
+
+        if (pendingAttachment) {
+            messageData.type = pendingAttachment.type;
+            messageData.url = pendingAttachment.dataURL;
+            messageData.text = '';
+            pendingAttachment = null;
+            showAttachmentPreview();
+        } else {
+            let text = messageInput.value.trim();
+            for (let w of blockedWords) text = text.replace(new RegExp(`\\b${escapeRegex(w)}\\b`, 'gi'), '█'.repeat(w.length));
+            messageData.type = 'text';
+            messageData.text = text;
+        }
+
+        await push(messagesRef, messageData);
+        messageInput.value = '';
+        set(ref(db, `typing/${currentUser}`), null);
+    };
+
+    messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendBtn.click(); });
+    accountBtn.onclick = openAccountModal;
+    adminPanelToggle.onclick = () => adminDrawer.classList.toggle('open');
+    modPanelToggle.onclick = () => adminDrawer.classList.toggle('open');
+    starToggle.onclick = () => { if (userRole === 'admin') { isAdminMode = !isAdminMode; starToggle.classList.toggle('star-active'); } };
+    gifBtn.addEventListener('click', openGifModal);
+
+    // Real-time listeners
+    function listenToMessages() {
+        onChildAdded(messagesRef, async (snap) => {
+            await loadProfiles();
+            renderMessage(snap.key, snap.val());
+        });
+        onChildRemoved(messagesRef, (snap) => {
+            const el = messageElements.get(snap.key);
+            if (el) el.remove();
+            messageElements.delete(snap.key);
+        });
+    }
+
+    function listenToProfiles() {
+        onValue(usersRef, (snap) => {
+            userProfiles.clear();
+            if (snap.exists()) snap.forEach(child => userProfiles.set(child.key, child.val()));
+            messagesDiv.innerHTML = '';
+            messageElements.clear();
+            get(messagesRef).then(msgsSnap => msgsSnap.forEach(c => renderMessage(c.key, c.val())));
+            updateOnlineList();
+        });
+    }
+
+    function listenToModerators() {
+        onValue(moderatorsRef, (snap) => {
+            moderatorUsernames.clear();
+            if (snap.exists()) snap.forEach(child => moderatorUsernames.add(child.key));
+            messagesDiv.innerHTML = '';
+            messageElements.clear();
+            get(messagesRef).then(msgsSnap => msgsSnap.forEach(c => renderMessage(c.key, c.val())));
+            updateOnlineList();
+        });
     }
 
     // Login
     document.getElementById('login-btn').onclick = async () => {
         const name = document.getElementById('login-name').value.trim();
         if (!name) { document.getElementById('error-msg').innerText = 'Enter a name!'; return; }
-        if (name === 'Johan06') {
+
+        const modSnap = await get(ref(db, `moderators/${name}`));
+        if (modSnap.exists()) {
+            const password = prompt('Enter moderator password:');
+            if (!password || password !== modSnap.val().password) {
+                document.getElementById('error-msg').innerText = 'Invalid moderator password.';
+                return;
+            }
+            currentUser = name;
+            userRole = 'moderator';
+            modPermissions = modSnap.val().permissions || {};
+            currentUserProfile = getProfile(name) || { name: currentUser, avatarColor: '#00e5ff', avatarUrl: null };
+            await saveProfile(currentUser, currentUserProfile);
+        } else if (name === 'Johan06') {
             const code = prompt('Enter admin master code:');
             if (code !== 'PurpleMania') { document.getElementById('error-msg').innerText = 'Invalid code.'; return; }
+            currentUser = name;
+            userRole = 'admin';
+            currentUserProfile = { name: currentUser, avatarColor: '#ffd700', avatarUrl: null };
+            await saveProfile(currentUser, currentUserProfile);
         } else {
             const snap = await get(messagesRef);
             let taken = false;
             snap.forEach(c => { if (c.val().username === name) taken = true; });
             if (taken) { document.getElementById('error-msg').innerText = 'Name taken!'; return; }
+            currentUser = name;
+            userRole = 'user';
+            currentUserProfile = { name: currentUser, avatarColor: '#9b30ff', avatarUrl: null };
+            await saveProfile(currentUser, currentUserProfile);
         }
-        currentUser = name;
-        currentUserProfile = { name: currentUser, avatarColor: currentUser === 'Johan06' ? '#ffd700' : '#9b30ff', avatarUrl: null };
-        await saveProfile(currentUser, currentUserProfile);
+
         loginScreen.style.display = 'none';
         chatApp.style.display = 'flex';
-        if (currentUser === 'Johan06') { starToggle.style.display = 'flex'; starToggle.classList.add('star-active'); isAdminMode = true; }
+
+        if (userRole === 'admin') {
+            starToggle.style.display = 'flex';
+            starToggle.classList.add('star-active');
+            isAdminMode = true;
+        } else {
+            starToggle.style.display = 'none';
+            isAdminMode = false;
+        }
+        adminPanelToggle.style.display = (userRole === 'admin') ? 'flex' : 'none';
+        modPanelToggle.style.display = (userRole === 'moderator') ? 'flex' : 'none';
+
         await loadProfiles();
-        const config = await get(ref(db, 'adminConfig'));
+        const config = await get(adminConfigRef);
         if (config.exists()) {
             if (config.val().blockedNames) blockedNames = new Set(config.val().blockedNames);
             if (config.val().blockedWords) blockedWords = new Set(config.val().blockedWords);
             if (typeof config.val().chatPaused === 'boolean') isChatPaused = config.val().chatPaused;
-            renderBlocked();
-            const pauseBtn = document.getElementById('pause-chat-btn');
-            if (pauseBtn) pauseBtn.innerText = isChatPaused ? '▶️ RESUME' : '⏸️ PAUSE';
         }
+
+        const initModSnap = await get(moderatorsRef);
+        moderatorUsernames.clear();
+        if (initModSnap.exists()) initModSnap.forEach(child => moderatorUsernames.add(child.key));
+
+        listenToMessages();
+        listenToProfiles();
+        listenToModerators();
+
         initPresence();
+        buildAdminDrawer();
+
+        const pauseBtn = document.getElementById('pause-chat-btn');
+        if (pauseBtn) pauseBtn.innerText = isChatPaused ? '▶️ RESUME' : '⏸️ PAUSE';
     };
-    sendBtn.onclick = async () => {
-        if (!messageInput.value.trim()) return;
-        if (isChatPaused && currentUser !== 'Johan06') return alert('Chat paused');
-        if (blockedNames.has(currentUser) && currentUser !== 'Johan06') return alert('You are blocked');
-        let text = messageInput.value.trim();
-        for (let w of blockedWords) text = text.replace(new RegExp(`\\b${escapeRegex(w)}\\b`, 'gi'), '█'.repeat(w.length));
-        await push(messagesRef, { username: currentUser, text, time: Date.now() });
-        messageInput.value = '';
-        set(ref(db, `typing/${currentUser}`), null);
-    };
-    messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendBtn.click(); });
-    accountBtn.onclick = openAccountModal;
-    adminPanelToggle.onclick = () => { if (currentUser !== 'Johan06') { const code = prompt('Admin code:'); if (code !== 'PurpleMania') return; } adminDrawer.classList.toggle('open'); };
-    starToggle.onclick = () => { if (currentUser === 'Johan06') { isAdminMode = !isAdminMode; starToggle.classList.toggle('star-active'); } };
-    onChildAdded(messagesRef, async (snap) => { await loadProfiles(); renderMessage(snap.key, snap.val()); });
-    onChildRemoved(messagesRef, (snap) => messageElements.get(snap.key)?.remove());
-    onValue(ref(db, 'adminConfig'), (snap) => {
+
+    onValue(adminConfigRef, (snap) => {
         if (snap.exists()) {
             if (snap.val().blockedNames) blockedNames = new Set(snap.val().blockedNames);
             if (snap.val().blockedWords) blockedWords = new Set(snap.val().blockedWords);
@@ -1467,7 +2074,10 @@
             if (pauseBtn) pauseBtn.innerText = isChatPaused ? '▶️ RESUME' : '⏸️ PAUSE';
         }
     });
-    onValue(ref(db, '.info/connected'), (snap) => { statusSpan.innerText = snap.val() ? '✨ ONLINE ✨' : '🌙 OFFLINE'; });
+
+    onValue(ref(db, '.info/connected'), (snap) => {
+        statusSpan.innerText = snap.val() ? '✨ ONLINE ✨' : '🌙 OFFLINE';
+    });
 </script>
 </body>
 </html>
