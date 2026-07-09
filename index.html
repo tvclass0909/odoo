@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>NovaChat • Neon Evolution</title>
     <style>
+        /* ========== ALL CSS UNCHANGED FROM PREVIOUS ANSWER ========== */
         * {
             margin: 0;
             padding: 0;
@@ -195,7 +196,7 @@
         }
 
         .sidebar {
-            width: 320px;
+            width: 340px;
             background: var(--sidebar-bg);
             padding: 24px 20px;
             display: flex;
@@ -763,7 +764,7 @@
 
         .profile-popup {
             position: fixed; background: var(--bg-card); border-radius: 28px; padding: 18px 24px;
-            text-align: center; z-index: 2001; pointer-events: none; border: 1px solid var(--gold);
+            text-align: center; z-index: 2001; pointer-events: auto; border: 1px solid var(--gold);
             box-shadow: 0 0 30px rgba(0,0,0,0.5); animation: fadeInUp 0.2s ease;
         }
 
@@ -840,7 +841,7 @@
         }
         .password-modal-content .modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
 
-        .server-item {
+        .server-item, .direct-message-item {
             display: flex;
             align-items: center;
             gap: 8px;
@@ -850,11 +851,50 @@
             margin-bottom: 4px;
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
         }
-        .server-item:hover { background: rgba(155, 48, 255, 0.2); }
-        .server-item.active { background: rgba(155, 48, 255, 0.4); border: 1px solid var(--neon-purple); }
-        .server-item .server-icon { font-size: 18px; }
-        .server-item .server-name { flex: 1; font-size: 14px; }
+        .server-item:hover, .direct-message-item:hover { background: rgba(155, 48, 255, 0.2); }
+        .server-item.active, .direct-message-item.active { background: rgba(155, 48, 255, 0.4); border: 1px solid var(--neon-purple); }
+        .server-item .server-icon, .direct-message-item .dm-icon { font-size: 18px; }
+        .server-item .server-name, .direct-message-item .dm-partner { flex: 1; font-size: 14px; }
+
+        .server-menu-trigger {
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 6px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+        .server-menu-trigger:hover { background: rgba(155,48,255,0.3); }
+
+        .context-menu {
+            position: fixed;
+            background: var(--bg-card);
+            border: 1px solid var(--neon-purple);
+            border-radius: 16px;
+            padding: 8px;
+            z-index: 4000;
+            box-shadow: 0 0 20px var(--glow-purple);
+            animation: fadeIn 0.2s ease;
+            min-width: 150px;
+        }
+        .context-menu button {
+            display: block;
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            padding: 8px 12px;
+            text-align: left;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .context-menu button:hover {
+            background: var(--neon-purple);
+            color: white;
+        }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-darker); }
@@ -881,6 +921,11 @@
             <h4>🌟 ONLINE STARS</h4>
             <div id="online-list" class="online-list"></div>
         </div>
+        <!-- Direct Messages Section -->
+        <div style="background: rgba(0,0,0,0.4); border-radius: 20px; padding: 12px; border: 1px solid rgba(155,48,255,0.3);">
+            <h4 style="color: var(--cyan); margin-bottom: 8px;">💬 DIRECT MESSAGES</h4>
+            <div id="dm-list" style="display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto; margin-bottom: 8px;"></div>
+        </div>
         <!-- Servers Section -->
         <div style="background: rgba(0,0,0,0.4); border-radius: 20px; padding: 12px; border: 1px solid rgba(155,48,255,0.3);">
             <h4 style="color: var(--cyan); margin-bottom: 8px;">🌐 SERVERS</h4>
@@ -889,9 +934,7 @@
                 <button id="create-server-btn" class="sidebar-btn" style="flex:1;">+ Create</button>
                 <button id="join-server-btn" class="sidebar-btn" style="flex:1;">🔑 Join</button>
             </div>
-            <div id="public-servers-area" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
-                <!-- Public servers will appear here -->
-            </div>
+            <div id="public-servers-area" style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);"></div>
         </div>
         <div style="font-size:11px; opacity:0.6; text-align:center;">💫 Click your message to delete</div>
     </div>
@@ -950,6 +993,7 @@
     const serversRef = ref(db, 'servers');
     const serverMessagesRef = ref(db, 'serverMessages');
     const serverMembersRef = ref(db, 'serverMembers');
+    const directMessagesRef = ref(db, 'directMessages');
 
     const TENOR_API_KEY = "LIVDSRZULELA";
     const TENOR_SEARCH_URL = "https://g.tenor.com/v1/search";
@@ -972,11 +1016,14 @@
     let moderatorUsernames = new Set();
     let pendingAttachment = null;
 
-    // Server state
+    // Server & DM state
     let currentServerId = null;
     let joinedServers = new Map();
+    let currentDmId = null;
+    let currentDmPartner = null;
     let activeMessageListener = null;
 
+    // DOM elements
     const loginScreen = document.getElementById('login-screen');
     const chatApp = document.getElementById('chat-app');
     const messagesDiv = document.getElementById('messages');
@@ -1002,6 +1049,7 @@
     const joinServerBtn = document.getElementById('join-server-btn');
     const publicServersArea = document.getElementById('public-servers-area');
     const currentServerLabel = document.getElementById('current-server-label');
+    const dmListDiv = document.getElementById('dm-list');
 
     // Custom Password Modal
     function showPasswordModal(title, message) {
@@ -1258,15 +1306,20 @@
         popup.className = 'profile-popup';
         const isCreator = username === 'Johan06';
         let extraHtml = '';
-        if (isCreator) extraHtml = `<div style="color:gold; font-weight:bold; margin-top:5px;">⚡ OWNER / ADMIN / DEV ⚡</div><div style="color:#ffa500; font-size:12px;">Johan06: The Creator</div>`;
-        else if (moderatorUsernames.has(username)) extraHtml = `<div style="color:var(--cyan); font-weight:bold; margin-top:5px;">🛡️ MODERATOR</div>`;
+        if (isCreator) extraHtml = `<div style="color:gold; font-weight:bold; margin-top:5px;">⚡ OWNER / ADMIN / DEV ⚡</div>`;
+        else if (moderatorUsernames.has(username)) extraHtml = `<div style="color:var(--cyan);">🛡️ MODERATOR</div>`;
         const imgHtml = profile.avatarUrl ? `<div style="width:60px;height:60px;border-radius:50%;background-image:url(${profile.avatarUrl});background-size:cover;margin:0 auto;"></div>` : `<div style="width:60px;height:60px;border-radius:50%;background:${profile.avatarColor};display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto;">${username.charAt(0)}</div>`;
-        popup.innerHTML = `${imgHtml}<div style="margin-top:8px;"><strong>${escapeHtml(username)}</strong></div>${extraHtml}`;
+        popup.innerHTML = `${imgHtml}<div style="margin-top:8px;"><strong>${escapeHtml(username)}</strong></div>${extraHtml}<button class="admin-btn" style="margin-top:8px;" id="dm-popup-btn">💬 Message</button>`;
+        document.body.appendChild(popup);
         const rect = target.getBoundingClientRect();
         popup.style.left = `${rect.left + window.scrollX - 70}px`;
-        popup.style.top = `${rect.top + window.scrollY - 90}px`;
-        document.body.appendChild(popup);
-        setTimeout(() => popup.remove(), 3000);
+        popup.style.top = `${rect.top + window.scrollY - 120}px`;
+
+        popup.querySelector('#dm-popup-btn').addEventListener('click', () => {
+            openDirectMessage(username);
+        });
+
+        setTimeout(() => popup.remove(), 5000);
     }
 
     function renderMessage(key, msg) {
@@ -1467,6 +1520,13 @@
                 <div class="permission-toggle"><label>Rename User</label><label class="toggle-switch"><input type="checkbox" id="perm-renameUser" checked><span class="slider"></span></label></div>
                 <button id="create-mod-btn" class="admin-btn">➕ CREATE MODERATOR</button>
             `);
+            addSection('🕵️ VIEW DM', 'admin-dm-section', `
+                <p style="font-size:12px; margin-bottom:8px;">Silently read a private conversation.</p>
+                <input type="text" id="admin-dm-user-a" placeholder="User A" class="admin-input">
+                <input type="text" id="admin-dm-user-b" placeholder="User B" class="admin-input">
+                <button id="admin-view-dm-btn" class="admin-btn">View DM</button>
+                <div id="admin-dm-messages-area" style="margin-top:8px; max-height:200px; overflow-y:auto; background: rgba(0,0,0,0.3); border-radius:8px; padding:8px; font-size:12px;"></div>
+            `);
         }
 
         addSection('🛡️ MODERATION', 'mod-actions', `
@@ -1502,18 +1562,19 @@
     function attachAdminEventListeners() {
         const clearBtn = document.getElementById('clear-all-msgs');
         if (clearBtn && hasPermission('clearChat')) clearBtn.addEventListener('click', async () => {
-            if (confirm('Clear all messages?')) await remove(currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef);
+            const targetRef = currentDmId ? ref(db, `directMessages/${currentDmId}/messages`) : (currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef);
+            if (confirm('Clear all messages?')) await remove(targetRef);
         });
 
         const delUserBtn = document.getElementById('delete-user-msgs');
         if (delUserBtn && hasPermission('deleteUserMsgs')) delUserBtn.addEventListener('click', async () => {
             const user = document.getElementById('target-username')?.value.trim();
             if (!user) return;
-            const targetRef = currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef;
+            const targetRef = currentDmId ? ref(db, `directMessages/${currentDmId}/messages`) : (currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef);
             const snap = await get(targetRef);
             const deletions = [];
             snap.forEach(c => {
-                if (c.val().username === user) deletions.push(remove(ref(db, `${currentServerId ? 'serverMessages/'+currentServerId : 'messages'}/${c.key}`)));
+                if (c.val().username === user) deletions.push(remove(ref(db, `${currentDmId ? 'directMessages/'+currentDmId+'/messages' : (currentServerId ? 'serverMessages/'+currentServerId : 'messages')}/${c.key}`)));
             });
             await Promise.all(deletions);
             alert(`Deleted ${user}'s messages`);
@@ -1551,11 +1612,11 @@
             const oldN = document.getElementById('old-username')?.value.trim();
             const newN = document.getElementById('new-username')?.value.trim();
             if (!oldN || !newN) return;
-            const targetRef = currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef;
+            const targetRef = currentDmId ? ref(db, `directMessages/${currentDmId}/messages`) : (currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef);
             const snap = await get(targetRef);
             const updates = {};
             snap.forEach(c => { if (c.val().username === oldN) updates[c.key] = { ...c.val(), username: newN }; });
-            for (let key in updates) await set(ref(db, `${currentServerId ? 'serverMessages/'+currentServerId : 'messages'}/${key}`), updates[key]);
+            for (let key in updates) await set(ref(db, `${currentDmId ? 'directMessages/'+currentDmId+'/messages' : (currentServerId ? 'serverMessages/'+currentServerId : 'messages')}/${key}`), updates[key]);
             const prof = getProfile(oldN);
             await saveProfile(newN, prof);
             await remove(ref(db, `userProfiles/${oldN}`));
@@ -1581,6 +1642,29 @@
             document.getElementById('new-mod-password').value = '';
             loadModeratorsList();
         });
+
+        const adminViewDmBtn = document.getElementById('admin-view-dm-btn');
+        if (adminViewDmBtn) {
+            adminViewDmBtn.addEventListener('click', async () => {
+                const ua = document.getElementById('admin-dm-user-a')?.value.trim();
+                const ub = document.getElementById('admin-dm-user-b')?.value.trim();
+                if (!ua || !ub) return;
+                const dmId = getDmId(ua, ub);
+                const area = document.getElementById('admin-dm-messages-area');
+                area.innerHTML = 'Loading...';
+                const snap = await get(ref(db, `directMessages/${dmId}/messages`));
+                area.innerHTML = '';
+                if (snap.exists()) {
+                    snap.forEach(c => {
+                        const msg = c.val();
+                        const line = document.createElement('div');
+                        line.style.marginBottom = '4px';
+                        line.innerHTML = `<strong>${escapeHtml(msg.username)}:</strong> ${msg.type === 'text' ? escapeHtml(msg.text) : '[media]'}`;
+                        area.appendChild(line);
+                    });
+                } else area.innerHTML = 'No messages.';
+            });
+        }
     }
 
     async function loadModeratorsList() {
@@ -1684,8 +1768,8 @@
         if (joinedServers.has(serverId)) return;
         joinedServers.set(serverId, serverData);
         await set(ref(db, `serverMembers/${serverId}/${currentUser}`), true);
-        renderServerList();
-        if (!currentServerId) switchServer(serverId);
+        renderSidebarLists();
+        if (!currentServerId && !currentDmId) switchServer(serverId);
     }
 
     async function switchServer(serverId) {
@@ -1695,6 +1779,8 @@
         }
         messagesDiv.innerHTML = '';
         messageElements.clear();
+        currentDmId = null;
+        currentDmPartner = null;
 
         currentServerId = serverId;
         if (!serverId) {
@@ -1728,13 +1814,13 @@
             const snap = await get(msgsRef);
             snap.forEach(c => renderMessage(c.key, c.val()));
         }
-        renderServerList();
+        renderSidebarLists();
     }
 
-    function renderServerList() {
+    async function renderServerList() {
         serverListDiv.innerHTML = '';
         const globalDiv = document.createElement('div');
-        globalDiv.className = 'server-item' + (!currentServerId ? ' active' : '');
+        globalDiv.className = 'server-item' + (!currentServerId && !currentDmId ? ' active' : '');
         globalDiv.innerHTML = `<span class="server-icon">🌍</span><span class="server-name">Global Nexus</span>`;
         globalDiv.addEventListener('click', () => switchServer(null));
         serverListDiv.appendChild(globalDiv);
@@ -1743,7 +1829,19 @@
             const div = document.createElement('div');
             div.className = 'server-item' + (currentServerId === id ? ' active' : '');
             div.innerHTML = `<span class="server-icon">📌</span><span class="server-name">${escapeHtml(data.name)}</span>`;
-            div.addEventListener('click', () => switchServer(id));
+            // Add "..." menu trigger
+            const menuTrigger = document.createElement('span');
+            menuTrigger.className = 'server-menu-trigger';
+            menuTrigger.textContent = '⋯';
+            menuTrigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showServerContextMenu(e, id, data);
+            });
+            div.appendChild(menuTrigger);
+            div.addEventListener('click', (e) => {
+                if (e.target === menuTrigger) return;
+                switchServer(id);
+            });
             serverListDiv.appendChild(div);
         }
         loadPublicServers();
@@ -1775,6 +1873,65 @@
         }
     }
 
+    function showServerContextMenu(event, serverId, serverData) {
+        document.querySelectorAll('.context-menu').forEach(m => m.remove());
+
+        const menu = document.createElement('div');
+        menu.className = 'context-menu';
+        menu.style.left = `${event.clientX}px`;
+        menu.style.top = `${event.clientY}px`;
+
+        const canDelete = userRole === 'admin' || currentUser === serverData.createdBy || hasPermission('deleteUserMsgs');
+        const canToggle = userRole === 'admin' || currentUser === serverData.createdBy;
+
+        if (canDelete) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = '🗑️ Delete Chat';
+            deleteBtn.addEventListener('click', async () => {
+                if (confirm(`Delete server "${serverData.name}" and all its messages?`)) {
+                    await remove(ref(db, `servers/${serverId}`));
+                    await remove(ref(db, `serverMessages/${serverId}`));
+                    await remove(ref(db, `serverMembers/${serverId}`));
+                    joinedServers.delete(serverId);
+                    if (currentServerId === serverId) switchServer(null);
+                    renderSidebarLists();
+                    alert('Server deleted.');
+                }
+                menu.remove();
+            });
+            menu.appendChild(deleteBtn);
+        }
+
+        if (canToggle) {
+            const toggleBtn = document.createElement('button');
+            toggleBtn.textContent = serverData.public ? '🔒 Make Private' : '🌐 Make Public';
+            toggleBtn.addEventListener('click', async () => {
+                const newPublic = !serverData.public;
+                await update(ref(db, `servers/${serverId}`), { public: newPublic });
+                serverData.public = newPublic;
+                joinedServers.set(serverId, serverData);
+                renderSidebarLists();
+                menu.remove();
+            });
+            menu.appendChild(toggleBtn);
+        }
+
+        if (menu.children.length === 0) {
+            const noAction = document.createElement('button');
+            noAction.textContent = 'No actions available';
+            noAction.disabled = true;
+            menu.appendChild(noAction);
+        }
+
+        document.body.appendChild(menu);
+        document.addEventListener('click', function closeMenu(e) {
+            if (!menu.contains(e.target)) {
+                menu.remove();
+                document.removeEventListener('click', closeMenu);
+            }
+        });
+    }
+
     createServerBtn.addEventListener('click', () => {
         const overlay = document.createElement('div');
         overlay.className = 'modal-overlay';
@@ -1804,8 +1961,16 @@
             if (!name) return alert('Name required');
             let code = codeInput.value.trim().toUpperCase();
             if (!code) code = generateServerCode();
-            const snap = await get(query(serversRef, orderByChild('code'), equalTo(code)));
-            if (snap.exists()) return alert('Server code already taken.');
+
+            const snap = await get(serversRef);
+            let codeTaken = false;
+            if (snap.exists()) {
+                snap.forEach(child => {
+                    if (child.val().code === code) codeTaken = true;
+                });
+            }
+            if (codeTaken) return alert('Server code already taken.');
+
             const serverData = {
                 name,
                 code,
@@ -1825,14 +1990,102 @@
     joinServerBtn.addEventListener('click', async () => {
         const code = await showPasswordModal('Join Server', 'Enter server code:');
         if (!code) return;
-        const snap = await get(query(serversRef, orderByChild('code'), equalTo(code.toUpperCase())));
-        if (!snap.exists()) return alert('Server not found.');
-        let serverId, serverData;
-        snap.forEach(c => { serverId = c.key; serverData = c.val(); });
-        if (!serverData.public && code.toUpperCase() !== serverData.code) return alert('Invalid code.');
-        await joinServerById(serverId, serverData);
-        switchServer(serverId);
+        const snap = await get(serversRef);
+        let targetServerId = null, targetServerData = null;
+        if (snap.exists()) {
+            snap.forEach(child => {
+                if (child.val().code === code.toUpperCase()) {
+                    targetServerId = child.key;
+                    targetServerData = child.val();
+                }
+            });
+        }
+        if (!targetServerId) return alert('Server not found.');
+        await joinServerById(targetServerId, targetServerData);
+        switchServer(targetServerId);
     });
+
+    // ---------- DIRECT MESSAGES ----------
+    function getDmId(userA, userB) {
+        return [userA, userB].sort().join('_');
+    }
+
+    async function switchToDM(dmId, partnerUsername) {
+        if (activeMessageListener) {
+            activeMessageListener();
+            activeMessageListener = null;
+        }
+        messagesDiv.innerHTML = '';
+        messageElements.clear();
+        currentServerId = null;
+        currentDmId = dmId;
+        currentDmPartner = partnerUsername;
+        currentServerLabel.textContent = `💬 DM with ${escapeHtml(partnerUsername)}`;
+
+        const dmMsgsRef = ref(db, `directMessages/${dmId}/messages`);
+        const unsubAdded = onChildAdded(dmMsgsRef, async (snap) => {
+            await loadProfiles();
+            renderMessage(snap.key, snap.val());
+        });
+        const unsubRemoved = onChildRemoved(dmMsgsRef, (snap) => {
+            const el = messageElements.get(snap.key);
+            if (el) el.remove();
+            messageElements.delete(snap.key);
+        });
+        activeMessageListener = () => { unsubAdded(); unsubRemoved(); };
+        const snap = await get(dmMsgsRef);
+        snap.forEach(c => renderMessage(c.key, c.val()));
+
+        renderSidebarLists();
+    }
+
+    async function openDirectMessage(username) {
+        if (username === currentUser) return alert('You cannot DM yourself.');
+        const dmId = getDmId(currentUser, username);
+        await set(ref(db, `directMessages/${dmId}/members/${currentUser}`), true);
+        await set(ref(db, `directMessages/${dmId}/members/${username}`), true);
+        switchToDM(dmId, username);
+        document.querySelector('.profile-popup')?.remove();
+    }
+
+    // Real-time DM list listener (fixes the missing DM bug)
+    function listenToDirectMessages() {
+        onValue(directMessagesRef, async (snap) => {
+            await renderDmList();
+        });
+    }
+
+    async function renderDmList() {
+        if (!dmListDiv) return;
+        dmListDiv.innerHTML = '';
+        const dmSnap = await get(directMessagesRef);
+        if (dmSnap.exists()) {
+            const entries = [];
+            dmSnap.forEach(child => entries.push({ id: child.key, data: child.val() }));
+            for (const entry of entries) {
+                const members = entry.data.members;
+                if (members && members[currentUser]) {
+                    const partners = Object.keys(members).filter(u => u !== currentUser);
+                    if (partners.length > 0) {
+                        const partner = partners[0];
+                        const div = document.createElement('div');
+                        div.className = 'direct-message-item' + (currentDmId === entry.id ? ' active' : '');
+                        div.innerHTML = `<span class="dm-icon">✉️</span><span class="dm-partner">${escapeHtml(partner)}</span>`;
+                        div.addEventListener('click', () => switchToDM(entry.id, partner));
+                        dmListDiv.appendChild(div);
+                    }
+                }
+            }
+        }
+        if (dmListDiv.children.length === 0) {
+            dmListDiv.innerHTML = '<div style="font-size:11px; opacity:0.6;">No DMs yet</div>';
+        }
+    }
+
+    async function renderSidebarLists() {
+        await renderServerList();
+        await renderDmList();
+    }
 
     // GIF modal
     function openGifModal() {
@@ -1908,7 +2161,7 @@
     async function sendGif(url) {
         if (isChatPaused && userRole !== 'admin' && !hasPermission('pauseChat')) return alert('Chat paused');
         if (blockedNames.has(currentUser) && userRole !== 'admin') return alert('You are blocked');
-        const targetRef = currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef;
+        const targetRef = currentDmId ? ref(db, `directMessages/${currentDmId}/messages`) : (currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef);
         await push(targetRef, {
             username: currentUser,
             text: '',
@@ -1966,7 +2219,7 @@
         attachmentPreviewArea.appendChild(removeBtn);
     }
 
-    // Send message (adapted for servers)
+    // Send message
     sendBtn.onclick = async () => {
         if (!messageInput.value.trim() && !pendingAttachment) return;
         if (isChatPaused && userRole !== 'admin' && !hasPermission('pauseChat')) return alert('Chat paused');
@@ -1985,7 +2238,7 @@
             messageData.type = 'text';
             messageData.text = text;
         }
-        const targetRef = currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef;
+        const targetRef = currentDmId ? ref(db, `directMessages/${currentDmId}/messages`) : (currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef);
         await push(targetRef, messageData);
         messageInput.value = '';
         set(ref(db, `typing/${currentUser}`), null);
@@ -1998,15 +2251,13 @@
     starToggle.onclick = () => { if (userRole === 'admin') { isAdminMode = !isAdminMode; starToggle.classList.toggle('star-active'); } };
     gifBtn.addEventListener('click', openGifModal);
 
-    // Real‑time listeners for the current context (set up in switchServer)
     function listenToProfiles() {
         onValue(usersRef, (snap) => {
             userProfiles.clear();
             if (snap.exists()) snap.forEach(child => userProfiles.set(child.key, child.val()));
-            // Re‑render messages and online list
             messagesDiv.innerHTML = '';
             messageElements.clear();
-            const targetRef = currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef;
+            const targetRef = currentDmId ? ref(db, `directMessages/${currentDmId}/messages`) : (currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef);
             get(targetRef).then(msgsSnap => msgsSnap.forEach(c => renderMessage(c.key, c.val())));
             updateOnlineList();
         });
@@ -2018,7 +2269,7 @@
             if (snap.exists()) snap.forEach(child => moderatorUsernames.add(child.key));
             messagesDiv.innerHTML = '';
             messageElements.clear();
-            const targetRef = currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef;
+            const targetRef = currentDmId ? ref(db, `directMessages/${currentDmId}/messages`) : (currentServerId ? ref(db, `serverMessages/${currentServerId}`) : messagesRef);
             get(targetRef).then(msgsSnap => msgsSnap.forEach(c => renderMessage(c.key, c.val())));
             updateOnlineList();
         });
@@ -2085,7 +2336,6 @@
         moderatorUsernames.clear();
         if (initModSnap.exists()) initModSnap.forEach(child => moderatorUsernames.add(child.key));
 
-        // Load joined servers
         const memberSnap = await get(serverMembersRef);
         if (memberSnap.exists()) {
             for (const [serverId, members] of Object.entries(memberSnap.val())) {
@@ -2097,8 +2347,12 @@
                 }
             }
         }
-        renderServerList();
-        switchServer(null); // start in global
+
+        // Start real-time DM listener (fixes the missing DM bug)
+        listenToDirectMessages();
+
+        await renderSidebarLists();
+        switchServer(null);
 
         listenToProfiles();
         listenToModerators();
