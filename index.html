@@ -2180,7 +2180,7 @@
     <div id="login-screen">
         <div class="login-card">
             <h2>✦ NOVACHAT ✦</h2>
-            <p class="version">Neon Evolution · v9.2.1</p>
+            <p class="version">Neon Evolution · v9.2.3</p>
             <input type="text" id="login-name" placeholder="Enter your username" autocomplete="off" />
             <button id="login-btn">⚡ JOIN THE NEXUS ⚡</button>
             <div id="error-msg"></div>
@@ -2281,6 +2281,7 @@
         const serverMembersRef = ref(db, 'serverMembers');
         const directMessagesRef = ref(db, 'directMessages');
 
+        // Giphy public API key (safe for GitHub)
         const GIPHY_API_KEY = "dc6zaTOxFJmzC";
         const GIPHY_SEARCH_URL = "https://api.giphy.com/v1/gifs/search";
 
@@ -3393,6 +3394,7 @@
             onValue(directMessagesRef, async () => {
                 await renderDmList();
             });
+            renderDmList();
         }
 
         async function renderDmList() {
@@ -3428,7 +3430,7 @@
             await renderDmList();
         }
 
-        // ─── GIF MODAL ───
+        // ─── GIF MODAL (Giphy public key) ───
         function openGifModal() {
             const existing = document.querySelector('.gif-modal-overlay');
             if (existing) existing.remove();
@@ -3457,7 +3459,8 @@
                 grid.innerHTML = '<p style="color:var(--cyan);">Loading…</p>';
                 try {
                     const res = await fetch(
-                        `${GIPHY_SEARCH_URL}?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=20`);
+                        `${GIPHY_SEARCH_URL}?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=20`
+                    );
                     const data = await res.json();
                     grid.innerHTML = '';
                     if (data.data && data.data.length > 0) {
